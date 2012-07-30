@@ -421,6 +421,24 @@ class Op(Instruction):
     def cstr(self):
         return Instruction.cstr(self) + ");"
 
+class SystemOp(Instruction):
+
+     def __init__(self, op):
+          Instruction.__init__(self, op[0])
+          self.barriers = op[1]
+
+     def generate(self):
+          Instruction.generate(self)
+          self.barrier \
+              = self.barriers[random.randint(0, len(self.barriers)-1)]
+          return self
+
+     def cstr(self):
+          return Instruction.cstr(self) + "Assembler::" + self.barrier + ");"
+
+     def astr(self):
+          return Instruction.astr(self) + self.barrier
+
 conditionCodes = ["EQ", "NE", "HS", "CS", "LO", "CC", "MI", "PL", "VS", \
                        "VC", "HI", "LS", "GE", "LT", "GT", "LE", "AL", "NV"]
 
@@ -742,7 +760,12 @@ generate (CondBranchOp, ["eq", "ne", "hs", "cs", "lo", "cc", "mi", "pl", "vs", "
 generate (ImmOp, ["svc", "hvc", "smc", "brk", "hlt", # "dpcs1",  "dpcs2",  "dpcs3"
                ])
 
-generate (Op, ["nop", "eret", "drps"])
+generate (Op, ["nop", "eret", "drps", "isb"])
+
+barriers = ["OSHLD", "OSHST", "OSH", "NSHLD", "NSHST", "NSH",
+            "ISHLD", "ISHST", "ISH", "LD", "ST", "SY"]
+
+generate (SystemOp, [["dsb", barriers], ["dmb", barriers]])
 
 generate (OneRegOp, ["br", "blr"])
 
