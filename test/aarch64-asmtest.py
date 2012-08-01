@@ -17,7 +17,7 @@ class Register(Operand):
 class FloatRegister(Register):
 
     def __str__(self):
-        return self.astr("F")
+        return self.astr("v")
 
 class GeneralRegister(Register):
 
@@ -90,6 +90,9 @@ class Instruction(object):
             name = "andr" # Special case: the name "and" can't be used
                           # in HotSpot, even for a member.
         return name
+
+    def multipleForms(self):
+         return 0
 
 class InstructionWithModes(Instruction):
 
@@ -303,39 +306,57 @@ class LogicalImmOp(AddSubImmOp):
      def cstr(self):
           return super(AddSubImmOp, self).cstr() + "l);"
     
-class AbsOp(Instruction):
+class MultiOp():
+
+    def multipleForms(self):
+         return 3
+
+    def forms(self):
+         return ["__ pc()", "back", "forth"]
+
+    def aforms(self):
+         return [".", "back", "forth"]
+
+class AbsOp(MultiOp, Instruction):
 
     def cstr(self):
-        return super(AbsOp, self).cstr() + "__ pc());"
+        return super(AbsOp, self).cstr() + "%s);"
 
     def astr(self):
-        return Instruction.astr(self) + "."
+        return Instruction.astr(self) + "%s"
 
-class RegAndAbsOp(Instruction):
+class RegAndAbsOp(MultiOp, Instruction):
     
+    def multipleForms(self):
+        if self.name() == "adrp": 
+            # We can only test one form of adrp because anything other
+            # than "adrp ." requires relocs in the assembler output
+            return 1
+        return 3
+
     def generate(self):
-        super(RegAndAbsOp, self).generate()
+        Instruction.generate(self)
         self.reg = GeneralRegister().generate()
         return self
     
     def cstr(self):
         return (super(RegAndAbsOp, self).cstr() 
-                + "%s, __ pc());" % self.reg)
+                + "%s, %s);" % (self.reg, "%s"))
 
     def astr(self):
         return (super(RegAndAbsOp, self).astr()
-                + self.reg.astr(self.asmRegPrefix) + ", .")
+                + self.reg.astr(self.asmRegPrefix) + ", %s")
 
 class RegImmAbsOp(RegAndAbsOp):
     
     def cstr(self):
         return (Instruction.cstr(self)
-                + "%s, %s, __ pc());" % (self.reg, self.immed))
+                + "%s, %s, %s);" % (self.reg, self.immed, "%s"))
 
     def astr(self):
         return (Instruction.astr(self)
-                + ("%s, #%s, ." 
-                   % (self.reg.astr(self.asmRegPrefix), self.immed)))
+                + ("%s, #%s, %s" 
+                   % (self.reg.astr(self.asmRegPrefix), self.immed, "%s")))
 
     def generate(self):
         super(RegImmAbsOp, self).generate()
@@ -344,6 +365,9 @@ class RegImmAbsOp(RegAndAbsOp):
 
 class MoveWideImmOp(RegImmAbsOp):
     
+    def multipleForms(self):
+         return 0
+
     def cstr(self):
         return (Instruction.cstr(self)
                 + "%s, %s, %s);" % (self.reg, self.immed, self.shift))
@@ -396,13 +420,13 @@ class ExtractOp(ThreeRegInstruction):
         return (ThreeRegInstruction.astr(self)
                 + (", #%s" % self.lsb))
     
-class CondBranchOp(Instruction):
+class CondBranchOp(MultiOp, Instruction):
 
     def cstr(self):
-        return "__ b" + self.name() + "(__ pc());"
+        return "__ br(Assembler::" + self.name() + ", %s);"
         
     def astr(self):
-        return "b." + self.name() + "\t."
+        return "b." + self.name() + "\t%s"
 
 class ImmOp(Instruction):
 
@@ -585,35 +609,41 @@ class Address(object):
             Address.base_plus_unscaled_offset: random.randint(-1<<8, 1<<8-1) | 1,
             Address.pre: random.randint(-1<<8, 1<<8-1),
             Address.post: random.randint(-1<<8, 1<<8-1),
-            Address.pcrel: random.randint(-1<<18, 1<<18-1),
+            Address.pcrel: random.randint(0, 2),
             Address.base_plus_reg: 0,
             Address.base_plus_scaled_offset: (random.randint(0, 1<<11-1) | (3 << 9))*8 } \
             [kind]                    
         return self
 
     def __str__(self):
-        return {
+        result = {
             Address.base_plus_unscaled_offset: "Address(%s, %s)" \
-                 % (str(self.base), self.offset),
+                % (str(self.base), self.offset),
             Address.pre: "Address(__ pre(%s, %s))" % (str(self.base), self.offset),
             Address.post: "Address(__ post(%s, %s))" % (str(self.base), self.offset),
-            Address.pcrel: "__ pc()",
+            Address.pcrel: "",
             Address.base_plus_reg: "Address(%s, %s)" % (self.base, self.index),
             Address.base_plus_scaled_offset: 
-               "Address(%s, %s)" % (self.base, self.offset) } [self.kind]
-            
+            "Address(%s, %s)" % (self.base, self.offset) } [self.kind]
+        if (self.kind == Address.pcrel):
+            result = ["__ pc()", "back", "forth"][self.offset]
+        return result
+
     def astr(self, prefix):
-        return {
+        result = {
             Address.base_plus_unscaled_offset: "[%s, %s]" \
                  % (self.base.astr(prefix), self.offset),
             Address.pre: "[%s, %s]!" % (self.base.astr(prefix), self.offset),
             Address.post: "[%s], %s" % (self.base.astr(prefix), self.offset),
-            Address.pcrel: ".",
+            Address.pcrel: "",
             Address.base_plus_reg: "[%s, %s]" \
                 % (self.base.astr(prefix), self.index.astr(prefix)),
             Address.base_plus_scaled_offset: \
                 "[%s, %s]" % (self.base.astr(prefix), self.offset)
             } [self.kind]
+        if (self.kind == Address.pcrel):
+            result = [".", "back", "forth"][self.offset]
+        return result
         
 class LoadStoreOp(InstructionWithModes):
 
@@ -718,14 +748,28 @@ def generate(kind, names):
     print "\n// " + kind.__name__
     for name in names:
         for i in range(1):
-            op = kind(name).generate()
-            print "    %-45s //\t%s" % (op.cstr(), op.astr())
-            outfile.write("\t" + op.astr() + "\n")
+             op = kind(name).generate()
+             if op.multipleForms():
+                  forms = op.forms()
+                  aforms = op.aforms()
+                  for i in range(op.multipleForms()):
+                       cstr = op.cstr() % forms[i]
+                       astr = op.astr() % aforms[i]
+                       print "    %-45s //\t%s" % (cstr, astr)
+                       outfile.write("\t" + astr + "\n")
+             else:
+                  print "    %-45s //\t%s" % (op.cstr(), op.astr())
+                  outfile.write("\t" + op.astr() + "\n")
 
 outfile = open("aarch64ops.s", "w")
 
 print "// BEGIN  Generated code -- do not edit"
 print "// Generated by aarch64-asmtest.py"
+
+print "    Label back, forth;"
+print "    __ bind(back);"
+
+outfile.write("back:\n")
 
 generate (ArithOp, 
           [ "add", "sub", "adds", "subs",
@@ -754,8 +798,8 @@ generate (BitfieldOp, ["sbfm", "bfmw", "ubfmw", "sbfm", "bfm", "ubfm"])
 
 generate (ExtractOp, ["extrw", "extr"])
 
-generate (CondBranchOp, ["eq", "ne", "hs", "cs", "lo", "cc", "mi", "pl", "vs", "vc",
-                        "hi", "ls", "ge", "lt", "gt", "le", "al", "nv" ])
+generate (CondBranchOp, ["EQ", "NE", "HS", "CS", "LO", "CC", "MI", "PL", "VS", "VC",
+                        "HI", "LS", "GE", "LT", "GT", "LE", "AL", "NV" ])
 
 generate (ImmOp, ["svc", "hvc", "smc", "brk", "hlt", # "dpcs1",  "dpcs2",  "dpcs3"
                ])
@@ -845,6 +889,9 @@ generate(FloatConvertOp, [["fcvtzsw", "fcvtzs", "ws"], ["fcvtzs", "fcvtzs", "xs"
 
 generate(TwoRegFloatOp, [["fcmps", "ss"], ["fcmpd", "dd"], 
                          ["fcmps", "sz"], ["fcmpd", "dz"]])
+
+print "\n    __ bind(forth);"
+outfile.write("forth:\n")
 
 outfile.close()
 
