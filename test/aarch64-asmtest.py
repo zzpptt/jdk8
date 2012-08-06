@@ -47,7 +47,7 @@ class OperandFactory:
 class ShiftKind:
 
     def generate(self):
-        self.kind = ["lsl", "lsr", "asr"][random.randint(0,2)]
+        self.kind = ["LSL", "LSR", "ASR"][random.randint(0,2)]
         return self
 
     def cstr(self):
@@ -596,12 +596,13 @@ class Address(object):
         base_plus_scaled_offset, pcrel = range(6)
     kinds = ["base_plus_unscaled_offset", "pre", "post", "base_plus_reg", 
              "base_plus_scaled_offset", "pcrel"]
+    extend_kinds = ["uxtw", "lsl", "sxtw", "sxtx"]
 
     @classmethod
     def kindToStr(cls, i):
          return cls.kinds[i]
     
-    def generate(self, kind):
+    def generate(self, kind, shift_distance):
         self.kind = kind
         self.base = GeneralRegister().generate()
         self.index = GeneralRegister().generate()
@@ -611,8 +612,10 @@ class Address(object):
             Address.post: random.randint(-1<<8, 1<<8-1),
             Address.pcrel: random.randint(0, 2),
             Address.base_plus_reg: 0,
-            Address.base_plus_scaled_offset: (random.randint(0, 1<<11-1) | (3 << 9))*8 } \
-            [kind]                    
+            Address.base_plus_scaled_offset: (random.randint(0, 1<<11-1) | (3 << 9))*8 } [kind]
+        self.offset >>= (3 - shift_distance)
+        self.extend_kind = Address.extend_kinds[random.randint(0, 3)]
+        self.shift_distance = random.randint(0, 1) * shift_distance
         return self
 
     def __str__(self):
@@ -622,7 +625,8 @@ class Address(object):
             Address.pre: "Address(__ pre(%s, %s))" % (str(self.base), self.offset),
             Address.post: "Address(__ post(%s, %s))" % (str(self.base), self.offset),
             Address.pcrel: "",
-            Address.base_plus_reg: "Address(%s, %s)" % (self.base, self.index),
+            Address.base_plus_reg: "Address(%s, %s, Address::%s(%s))" \
+                % (self.base, self.index, self.extend_kind, self.shift_distance),
             Address.base_plus_scaled_offset: 
             "Address(%s, %s)" % (self.base, self.offset) } [self.kind]
         if (self.kind == Address.pcrel):
@@ -630,16 +634,22 @@ class Address(object):
         return result
 
     def astr(self, prefix):
+        extend_prefix = prefix
+        if self.kind == Address.base_plus_reg:
+            if self.extend_kind.endswith("w"):
+                extend_prefix = "w"
         result = {
             Address.base_plus_unscaled_offset: "[%s, %s]" \
                  % (self.base.astr(prefix), self.offset),
             Address.pre: "[%s, %s]!" % (self.base.astr(prefix), self.offset),
             Address.post: "[%s], %s" % (self.base.astr(prefix), self.offset),
             Address.pcrel: "",
-            Address.base_plus_reg: "[%s, %s]" \
-                % (self.base.astr(prefix), self.index.astr(prefix)),
+            Address.base_plus_reg: "[%s, %s, %s #%s]" \
+                % (self.base.astr(prefix), self.index.astr(extend_prefix), 
+                   self.extend_kind, self.shift_distance),
             Address.base_plus_scaled_offset: \
-                "[%s, %s]" % (self.base.astr(prefix), self.offset)
+                "[%s, %s]" \
+                % (self.base.astr(prefix), self.offset)
             } [self.kind]
         if (self.kind == Address.pcrel):
             result = [".", "back", "forth"][self.offset]
@@ -652,18 +662,19 @@ class LoadStoreOp(InstructionWithModes):
         InstructionWithModes.__init__(self, name, mode)
 
     def generate(self):
-        adr = Address().generate(self.kind)
-        self.adr = adr
 
         # This is something of a kludge, but the offset needs to be
         # scaled by the memory datamode somehow.
+        shift = 3
         if (self.mode == 'b') | (self.asmname.endswith("b")):
-            adr.offset /= 8
+            shift = 0
         elif (self.mode == 'h') | (self.asmname.endswith("h")):
-            adr.offset /= 4
+            shift = 1
         elif (self.mode == 'w') | (self.asmname.endswith("w")) \
                 | (self.mode == 's') :
-            adr.offset /= 2
+            shift = 2
+
+        self.adr = Address().generate(self.kind, shift)
 
         isFloat = (self.mode == 'd') | (self.mode == 's')
 
@@ -755,10 +766,10 @@ def generate(kind, names):
                   for i in range(op.multipleForms()):
                        cstr = op.cstr() % forms[i]
                        astr = op.astr() % aforms[i]
-                       print "    %-45s //\t%s" % (cstr, astr)
+                       print "    %-50s //\t%s" % (cstr, astr)
                        outfile.write("\t" + astr + "\n")
              else:
-                  print "    %-45s //\t%s" % (op.cstr(), op.astr())
+                  print "    %-50s //\t%s" % (op.cstr(), op.astr())
                   outfile.write("\t" + op.astr() + "\n")
 
 outfile = open("aarch64ops.s", "w")
