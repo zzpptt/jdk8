@@ -703,6 +703,41 @@ class LoadStoreOp(InstructionWithModes):
          #      result = result.replace("st", "stu", 1)
          return result
 
+class LoadStorePairOp(InstructionWithModes):
+
+     numRegs = 2
+     
+     def __init__(self, args):
+          name, self.asmname, self.kind, mode = args
+          InstructionWithModes.__init__(self, name, mode)
+          self.offset = random.randint(-1<<4, 1<<4-1) << 4
+          
+     def generate(self):
+          self.reg = [OperandFactory.create(self.mode).generate() 
+                      for i in range(self.numRegs)]
+          self.base = OperandFactory.create('x').generate()
+          return self
+
+     def astr(self):
+          address = ["[%s, #%s]", "[%s, #%s]!", "[%s], #%s"][self.kind]
+          address = address % (self.base.astr('x'), self.offset)
+          result = "%s\t%s, %s, %s" \
+              % (self.asmname, 
+                 self.reg[0].astr(self.asmRegPrefix), 
+                 self.reg[1].astr(self.asmRegPrefix), address)
+          return result
+
+     def cstr(self):
+          address = {
+               Address.base_plus_unscaled_offset: "Address(%s, %s)" \
+                    % (str(self.base), self.offset),
+               Address.pre: "Address(__ pre(%s, %s))" % (str(self.base), self.offset),
+               Address.post: "Address(__ post(%s, %s))" % (str(self.base), self.offset),
+               } [self.kind]
+          result = "__ %s(%s, %s, %s);" \
+              % (self.name(), self.reg[0], self.reg[1], address)
+          return result
+
 class FloatInstruction(Instruction):
 
     def aname(self):
@@ -900,6 +935,24 @@ generate(FloatConvertOp, [["fcvtzsw", "fcvtzs", "ws"], ["fcvtzs", "fcvtzs", "xs"
 
 generate(TwoRegFloatOp, [["fcmps", "ss"], ["fcmpd", "dd"], 
                          ["fcmps", "sz"], ["fcmpd", "dz"]])
+
+for kind in range(3):
+     generate(LoadStorePairOp, [["stp", "stp", kind, "w"], ["ldp", "ldp", kind, "w"],
+                                ["ldpsw", "ldpsw", kind, "x"], 
+                                ["stp", "stp", kind, "x"], ["ldp", "ldp", kind, "x"]
+                                ])
+generate(LoadStorePairOp, [["stnp", "stnp", 0, "w"], ["ldnp", "ldnp", 0, "w"],
+                           ["stnp", "stnp", 0, "x"], ["ldnp", "ldnp", 0, "x"]])
+
+print "\n// FloatImmediateOp"
+for float in ("2.0", "2.125", "4.0", "4.25", "8.0", "8.5", "16.0", "17.0", "0.125", 
+              "0.1328125", "0.25", "0.265625", "0.5", "0.53125", "1.0", "1.0625", 
+              "-2.0", "-2.125", "-4.0", "-4.25", "-8.0", "-8.5", "-16.0", "-17.0", 
+              "-0.125", "-0.1328125", "-0.25", "-0.265625", "-0.5", "-0.53125", "-1.0", "-1.0625"):
+    astr = "fmov d0, #" + float
+    cstr = "__ fmovd(v0, " + float + ");"
+    print "    %-50s //\t%s" % (cstr, astr)
+    outfile.write("\t" + astr + "\n")
 
 print "\n    __ bind(forth);"
 outfile.write("forth:\n")
