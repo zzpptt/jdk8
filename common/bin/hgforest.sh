@@ -170,7 +170,8 @@ for i in ${repos} ${repos_extra} ; do
   (
     (
       if [ "${command}" = "clone" -o "${command}" = "fclone" ] ; then
-        pull_newrepo="`echo ${pull_base}/${i} | sed -e 's@\([^:]/\)//*@\1@g'`"
+        pull_newrepo="${pull_base}/${i}"
+        # pull_newrepo="`echo ${pull_base}/${i} | sed -e 's@\([^:]/\)//*@\1@g'`"
         echo ${hg} clone ${pull_newrepo} ${i}
         ${hg} clone ${pull_newrepo} ${i} &
       else
