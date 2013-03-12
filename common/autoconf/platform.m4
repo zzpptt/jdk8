@@ -479,3 +479,8 @@ if test "x$ENDIAN" != "x$OPENJDK_TARGET_CPU_ENDIAN"; then
     AC_MSG_ERROR([The tested endian in the target ($ENDIAN) differs from the endian expected to be found in the target ($OPENJDK_TARGET_CPU_ENDIAN)])
 fi
 ])
+
+AC_ARG_ENABLE([aarch64], [AS_HELP_STRING([--enable-aarch64],
+	[Enable build for AArch64])],
+	[BUILD_AARCH64="true"],)
+AC_SUBST(BUILD_AARCH64)

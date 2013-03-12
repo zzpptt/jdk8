@@ -228,6 +228,10 @@ if test "x$JVM_VARIANT_ZEROSHARK" = xtrue; then
     HOTSPOT_TARGET="$HOTSPOT_TARGET${HOTSPOT_DEBUG_LEVEL}shark "
 fi
 
+if test "x$BUILD_AARCH64" = xtrue; then
+    HOTSPOT_TARGET="jvmg1aarch64 "
+fi
+
 HOTSPOT_TARGET="$HOTSPOT_TARGET docs export_$HOTSPOT_EXPORT"
 
 # On Macosx universal binaries are produced, but they only contain
