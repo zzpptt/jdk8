@@ -682,16 +682,4 @@ fi
 
 AC_SUBST(LIBCXX)
 
-AC_ARG_WITH(arm-sim-dir, [AS_HELP_STRING([--with-arm-sim-dir],
-    [specify directory for the arm simulator])])
-
-if test "x${BUILD_AARCH64}" == xtrue; then
-    if test "x${with_arm_sim_dir}" != "x"; then
-        AARCH64_CFLAGS="-I${with_arm_sim_dir}"
-        AARCH64_LIBS="-L ${with_arm_sim_dir} -larmsim -Wl,-rpath,${with_arm_sim_dir}"
-        AC_SUBST(AARCH64_CFLAGS)
-        AC_SUBST(AARCH64_LIBS)
-    fi
-fi
-
 ])

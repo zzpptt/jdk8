@@ -484,3 +484,9 @@ AC_ARG_ENABLE([aarch64], [AS_HELP_STRING([--enable-aarch64],
 	[Enable build for AArch64])],
 	[BUILD_AARCH64="true"],)
 AC_SUBST(BUILD_AARCH64)
+
+
+AC_ARG_ENABLE([aarch64-c2], [AS_HELP_STRING([--enable-aarch64-c2],
+	[Enable C2 compiler for AArch64])],
+	[BUILD_AARCH64_C2="true"],)
+AC_SUBST(BUILD_AARCH64_C2)

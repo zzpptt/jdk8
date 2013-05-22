@@ -229,7 +229,11 @@ if test "x$JVM_VARIANT_ZEROSHARK" = xtrue; then
 fi
 
 if test "x$BUILD_AARCH64" = xtrue; then
-    HOTSPOT_TARGET="jvmg1aarch64 "
+    if test "x$BUILD_AARCH64_C2" = xtrue; then
+        HOTSPOT_TARGET="jvmgaarch64 "
+    else
+        HOTSPOT_TARGET="jvmg1aarch64 "
+    fi
 fi
 
 HOTSPOT_TARGET="$HOTSPOT_TARGET docs export_$HOTSPOT_EXPORT"
