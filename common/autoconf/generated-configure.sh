@@ -3704,7 +3704,7 @@ fi
 #CUSTOM_AUTOCONF_INCLUDE
 
 # Do not change or remove the following line, it is needed for consistency checks:
-DATE_WHEN_GENERATED=1369226025
+DATE_WHEN_GENERATED=1369239945
 
 ###############################################################################
 #
@@ -7601,8 +7601,10 @@ fi
 if test "x$BUILD_AARCH64" = xtrue; then
     if test "x$BUILD_AARCH64_C2" = xtrue; then
         HOTSPOT_TARGET="jvmgaarch64 "
+	HOTSPOT_EXPORT=debug
     else
         HOTSPOT_TARGET="jvmg1aarch64 "
+	HOTSPOT_EXPORT=debug
     fi
 fi
 

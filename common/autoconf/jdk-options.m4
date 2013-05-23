@@ -231,8 +231,10 @@ fi
 if test "x$BUILD_AARCH64" = xtrue; then
     if test "x$BUILD_AARCH64_C2" = xtrue; then
         HOTSPOT_TARGET="jvmgaarch64 "
+	HOTSPOT_EXPORT=debug
     else
         HOTSPOT_TARGET="jvmg1aarch64 "
+	HOTSPOT_EXPORT=debug
     fi
 fi
 
