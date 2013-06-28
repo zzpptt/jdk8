@@ -83,6 +83,9 @@ PLATFORM_SETUP_OPENJDK_BUILD_AND_TARGET
 BASIC_SETUP_PATHS
 BASIC_SETUP_LOGGING
 
+# Check if it's a pure open build or if custom sources are to be used.
+JDKOPT_SETUP_OPEN_OR_CUSTOM
+
 # These are needed to be able to create a configuration name (and thus the output directory)
 JDKOPT_SETUP_JDK_VARIANT
 JDKOPT_SETUP_JVM_VARIANTS
@@ -191,6 +194,7 @@ BASIC_COMPILE_FIXPATH
 ###############################################################################
 
 JDKOPT_SETUP_BUILD_TWEAKS
+JDKOPT_DETECT_INTREE_EC
 
 ###############################################################################
 #
@@ -201,6 +205,7 @@ JDKOPT_SETUP_BUILD_TWEAKS
 
 BPERF_SETUP_BUILD_CORES
 BPERF_SETUP_BUILD_MEMORY
+BPERF_SETUP_BUILD_JOBS
 
 # Setup smart javac (after cores and memory have been setup)
 BPERF_SETUP_SMART_JAVAC

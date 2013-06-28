@@ -1,4 +1,4 @@
-# Copyright (c) 1997, 2012, Oracle and/or its affiliates. All rights reserved.
+# Copyright (c) 1997, 2013, Oracle and/or its affiliates. All rights reserved.
 # DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
 #
 # This code is free software; you can redistribute it and/or modify it
@@ -32,8 +32,6 @@ include MakeBase.gmk
 # Definitions for $(DOCSDIR), $(MKDIR), $(BINDIR), etc.
 #
 
-CLASSPATH_SEPARATOR = :
-
 DOCSDIR=$(OUTPUT_ROOT)/docs
 TEMPDIR=$(OUTPUT_ROOT)/docstemp
 
@@ -48,14 +46,11 @@ HOTSPOT_DOCS_IMPORT_PATH=$(HOTSPOT_OUTPUTDIR)/docs
 
 BUILD_NUMBER=$(JDK_BUILD_NUMBER)
 
-BOOT_JAVA_CMD=$(JAVA)
-
-JAVADOC_JAR = $(LANGTOOLS_DIST)/bootstrap/lib/javadoc.jar
-JAVADOC_CMD = $(BOOT_JAVA_CMD) \
+JAVADOC_CMD = $(JAVA) \
               -Xmx1024m \
 	      -Djava.awt.headless=true \
-              "-Xbootclasspath/p:$(JAVADOC_JAR)" \
-              -jar $(JAVADOC_JAR) -bootclasspath $(JDK_OUTPUTDIR)/classes
+	      $(NEW_JAVADOC) \
+	      -bootclasspath $(JDK_OUTPUTDIR)/classes
 
 # Copyright year for beginning of Java and some of the apis
 #   (Needed when creating the javadocs)
@@ -137,7 +132,7 @@ $(FULL_COMPANY_NAME) in the US and other countries.
 # List of all possible directories for javadoc to look for sources
 #    NOTE: Quotes are required around sourcepath argument only on Windows.
 #          Otherwise, you get "No packages or classes specified." due 
-#          to $(CLASSPATH_SEPARATOR) being interpreted as an end of 
+#          to $(PATH_SEP) being interpreted as an end of 
 #          command (newline or shell ; character)
 ALL_SOURCE_DIRS = $(JDK_SHARE_CLASSES) \
                   $(JDK_IMPSRC) \
@@ -154,7 +149,7 @@ ALL_EXISTING_SOURCE_DIRS := $(wildcard $(ALL_SOURCE_DIRS))
 EMPTY:=
 SPACE:= $(EMPTY) $(EMPTY)
 RELEASEDOCS_SOURCEPATH = \
-    $(subst $(SPACE),$(CLASSPATH_SEPARATOR),$(strip $(ALL_SOURCE_DIRS)))
+    $(subst $(SPACE),$(PATH_SEP),$(strip $(ALL_SOURCE_DIRS)))
 
 define prep-target
 $(MKDIR) -p $(@D)
@@ -271,6 +266,8 @@ COMMON_JAVADOCFLAGS =					\
 		-quiet					\
                 -use					\
                 -keywords				\
+		-Xdoclint:none				\
+                -Xprofilespath $(JDK_TOPDIR)/makefiles/profile-rtjar-includes.txt \
 		$(ADDITIONAL_JAVADOCFLAGS)
 
 ifdef OPENJDK

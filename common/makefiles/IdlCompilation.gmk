@@ -70,8 +70,8 @@ define add_idl_package
 		$(PREFIXES) \
 		$4
 	$(RM) -f $$(addprefix $3/$$($4_TMPDIR)/,$6)
-	$(CP) -rp $3/$$($4_TMPDIR)/* $3
-	($(CD) $3/$$($4_TMPDIR); find . -type f | sed 's!\./!$3/!g' | awk '{ print $$$$1 ": $4" }' > $5)
+	$(CP) -r $3/$$($4_TMPDIR)/* $3
+	($(CD) $3/$$($4_TMPDIR) && $(FIND) . -type f | $(SED) 's!\./!$3/!g' | $(NAWK) '{ print $$$$1 ": $4" }' > $5)
 	$(RM) -rf $3/$$($4_TMPDIR)
 endef
 
@@ -87,7 +87,7 @@ $(if $(16),$(error Internal makefile error: Too many arguments to SetupIdlCompil
 $1_SRC := $$(abspath $$($1_SRC))
 $1_BIN := $$(abspath $$($1_BIN))
 # Find all existing java files and existing class files.
-$$(shell $(MKDIR) -p $$($1_SRC) $$($1_BIN))
+$$(eval $$(call MakeDir,$$($1_BIN)))
 $1_SRCS     := $$(shell find $$($1_SRC) -name "*.idl")
 $1_BINS     := $$(shell find $$($1_BIN) -name "*.java")
 # Prepend the source/bin path to the filter expressions.

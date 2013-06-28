@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2011, 2012, Oracle and/or its affiliates. All rights reserved.
+# Copyright (c) 2001, 2011, Oracle and/or its affiliates. All rights reserved.
 # DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
 #
 # This code is free software; you can redistribute it and/or modify it
@@ -23,18 +23,37 @@
 # questions.
 #
 
-JDK_MAJOR_VERSION=1
-JDK_MINOR_VERSION=8
-JDK_MICRO_VERSION=0
-JDK_UPDATE_VERSION=
-JDK_BUILD_NUMBER=
-MILESTONE=internal
-LAUNCHER_NAME=openjdk
-PRODUCT_NAME=OpenJDK
-PRODUCT_SUFFIX="Runtime Environment"
-JDK_RC_PLATFORM_NAME=Platform
-COMPANY_NAME=N/A
+################################################################
+# NASHORN TARGETS
+################################################################
 
-# Might need better names for these
-MACOSX_BUNDLE_NAME_BASE="OpenJDK"
-MACOSX_BUNDLE_ID_BASE="net.java.openjdk"
+NASHORN_BUILD_ARGUMENTS = \
+   $(COMMON_BUILD_ARGUMENTS) \
+   ALT_OUTPUTDIR=$(NASHORN_OUTPUTDIR) \
+   ALT_BOOTDIR=$(BOOTDIR) \
+   ALT_JDK_IMPORT_PATH=$(JDK_IMPORT_PATH)
+
+ifeq ($(BUILD_LANGTOOLS), true)
+   NASHORN_BUILD_ARGUMENTS += ALT_LANGTOOLS_DIST=$(ABS_LANGTOOLS_DIST)
+endif
+
+# Default targets
+NASHORN = nashorn-build
+
+nashorn: nashorn-build
+nashorn-build:
+	$(MKDIR) -p $(NASHORN_OUTPUTDIR)
+	@$(call MakeStart,nashorn,all)
+	($(CD) $(NASHORN_TOPDIR)/make && \
+	 $(MAKE) $(NASHORN_BUILD_ARGUMENTS) all)
+	@$(call MakeFinish,nashorn,all)
+
+nashorn-clobber::
+	$(MKDIR) -p $(NASHORN_OUTPUTDIR)
+	@$(call MakeStart,nashorn,clobber)
+	($(CD) $(NASHORN_TOPDIR)/make &&  \
+	 $(MAKE) $(NASHORN_BUILD_ARGUMENTS) clobber)
+	@$(call MakeFinish,nashorn,clobber)
+
+.PHONY: nashorn nashorn-build nashorn-clobber 
+

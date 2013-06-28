@@ -26,6 +26,11 @@
 # If NEWBUILD is defined, use the new build-infra Makefiles and configure.
 #     See NewMakefile.gmk for more information.
 
+# If not specified, select what the default build is
+ifndef NEWBUILD
+  NEWBUILD=true
+endif
+
 ifeq ($(NEWBUILD),true)
 
   # The new top level Makefile
@@ -85,6 +90,7 @@ include ./make/corba-rules.gmk
 include ./make/jaxp-rules.gmk
 include ./make/jaxws-rules.gmk
 include ./make/jdk-rules.gmk
+include ./make/nashorn-rules.gmk
 include ./make/install-rules.gmk
 include ./make/sponsors-rules.gmk
 include ./make/deploy-rules.gmk
@@ -167,6 +173,11 @@ endif
 ifeq ($(BUILD_JDK), true)
   generic_build_repo_series:: $(JDK_JAVA_EXE)
   clobber:: jdk-clobber
+endif
+
+ifeq ($(BUILD_NASHORN), true)
+  generic_build_repo_series:: $(NASHORN)
+  clobber:: nashorn-clobber
 endif
 
 ifeq ($(BUILD_DEPLOY), true)
@@ -331,6 +342,7 @@ deploy_fastdebug_only:
 	    BUILD_HOTSPOT=false \
 	    BUILD_JDK=false \
 	    BUILD_LANGTOOLS=false \
+	    BUILD_NASHORN=false \
 	    BUILD_CORBA=false \
 	    BUILD_JAXP=false \
 	    BUILD_JAXWS=false \

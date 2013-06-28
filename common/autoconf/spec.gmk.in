@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2011, 2012, Oracle and/or its affiliates. All rights reserved.
+# Copyright (c) 2011, 2013, Oracle and/or its affiliates. All rights reserved.
 # DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
 #
 # This code is free software; you can redistribute it and/or modify it
@@ -141,6 +141,7 @@ CORBA_TOPDIR:=@CORBA_TOPDIR@
 JAXP_TOPDIR:=@JAXP_TOPDIR@
 JAXWS_TOPDIR:=@JAXWS_TOPDIR@
 HOTSPOT_TOPDIR:=@HOTSPOT_TOPDIR@
+NASHORN_TOPDIR:=@NASHORN_TOPDIR@
 COPYRIGHT_YEAR:=@COPYRIGHT_YEAR@
 
 # Location where build customization files may be found
@@ -163,11 +164,22 @@ MACOSX_BUNDLE_ID_BASE=@MACOSX_BUNDLE_ID_BASE@
 
 # Different version strings generated from the above information.
 JDK_VERSION:=@JDK_VERSION@
-RUNTIME_NAME:=@RUNTIME_NAME@
-FULL_VERSION:=@FULL_VERSION@
-JRE_RELEASE_VERSION:=@FULL_VERSION@
-RELEASE:=@RELEASE@
+RUNTIME_NAME=$(PRODUCT_NAME) $(PRODUCT_SUFFIX)
 COOKED_BUILD_NUMBER:=@COOKED_BUILD_NUMBER@
+# These variables need to be generated here so that MILESTONE and
+# JDK_BUILD_NUMBER can be overridden on the make command line.
+ifeq ($(MILESTONE),)
+  RELEASE=$(JDK_VERSION)$(BUILD_VARIANT_RELEASE)
+else
+  RELEASE=$(JDK_VERSION)-$(MILESTONE)$(BUILD_VARIANT_RELEASE)
+endif
+ifeq ($(JDK_BUILD_NUMBER),b00)
+  USER_RELEASE_SUFFIX=@USER_RELEASE_SUFFIX@
+  FULL_VERSION=$(RELEASE)-$(USER_RELEASE_SUFFIX)-$(JDK_BUILD_NUMBER)
+else
+  FULL_VERSION=$(RELEASE)-$(JDK_BUILD_NUMBER)
+endif
+JRE_RELEASE_VERSION:=$(FULL_VERSION)
 
 # How to compile the code: release, fastdebug or slowdebug
 DEBUG_LEVEL:=@DEBUG_LEVEL@
@@ -213,19 +225,23 @@ BUILD_VARIANT_RELEASE:=@BUILD_VARIANT_RELEASE@
 # directory.
 
 BUILD_OUTPUT:=@BUILD_OUTPUT@
+# Colon left out to be able to override IMAGES_OUTPUTDIR for bootcycle-images
 LANGTOOLS_OUTPUTDIR=$(BUILD_OUTPUT)/langtools
 CORBA_OUTPUTDIR=$(BUILD_OUTPUT)/corba
 JAXP_OUTPUTDIR=$(BUILD_OUTPUT)/jaxp
 JAXWS_OUTPUTDIR=$(BUILD_OUTPUT)/jaxws
 HOTSPOT_OUTPUTDIR=$(BUILD_OUTPUT)/hotspot
 JDK_OUTPUTDIR=$(BUILD_OUTPUT)/jdk
+NASHORN_OUTPUTDIR=$(BUILD_OUTPUT)/nashorn
 IMAGES_OUTPUTDIR=$(BUILD_OUTPUT)/images
+JCE_OUTPUTDIR=$(BUILD_OUTPUT)/jce-release
 
 LANGTOOLS_DIST=$(LANGTOOLS_OUTPUTDIR)/dist
 CORBA_DIST=$(CORBA_OUTPUTDIR)/dist
 JAXP_DIST=$(JAXP_OUTPUTDIR)/dist
 JAXWS_DIST=$(JAXWS_OUTPUTDIR)/dist
 HOTSPOT_DIST=@HOTSPOT_DIST@
+NASHORN_DIST=$(NASHORN_OUTPUTDIR)/dist
 
 BUILD_HOTSPOT=@BUILD_HOTSPOT@
 
@@ -248,6 +264,9 @@ ENABLE_SJAVAC:=@ENABLE_SJAVAC@
 # the sjavac server log files.
 SJAVAC_SERVER_DIR:=@SJAVAC_SERVER_DIR@
 
+# Number of parallel jobs to use for compilation
+JOBS?=@JOBS@
+
 # The OpenJDK makefiles should be changed to using the standard
 # configure output ..._CFLAGS and ..._LIBS. In the meantime we
 # extract the information here.
@@ -269,6 +288,13 @@ UNLIMITED_CRYPTO=@UNLIMITED_CRYPTO@
 X_CFLAGS:=@X_CFLAGS@
 X_LIBS:=@X_LIBS@
 OPENWIN_HOME:=@OPENWIN_HOME@
+
+# DirectX SDK
+DXSDK_LIB_PATH=@DXSDK_LIB_PATH@
+DXSDK_INCLUDE_PATH=@DXSDK_INCLUDE_PATH@
+
+# The lowest required version of macosx to enforce compatiblity for
+MACOSX_VERSION_MIN=@MACOSX_VERSION_MIN@
 
 # There are two types: CC or CL
 # CC is gcc and others behaving reasonably similar.
@@ -351,6 +377,7 @@ AR:=@FIXPATH@ @AR@
 ARFLAGS:=@ARFLAGS@
 
 NM:=@NM@
+GNM:=@GNM@
 STRIP:=@STRIP@
 MCS:=@MCS@
 
@@ -420,6 +447,14 @@ RMIC=@FIXPATH@ $(BOOT_JDK)/bin/rmic
 
 NATIVE2ASCII=@FIXPATH@ $(BOOT_JDK)/bin/native2ascii
 
+JARSIGNER=@FIXPATH@ $(BOOT_JDK)/bin/jarsigner
+
+# You run the new javac using the boot jdk with $(BOOT_JDK)/bin/java $(NEW_JAVAC) ...
+BOOTSTRAP_JAVAC_JAR:=$(LANGTOOLS_OUTPUTDIR)/dist/bootstrap/lib/javac.jar
+BOOTSTRAP_JAVAC_ARGS:="-Xbootclasspath/p:$(BOOTSTRAP_JAVAC_JAR)" -cp $(BOOTSTRAP_JAVAC_JAR)
+NEW_JAVAC   = $(BOOTSTRAP_JAVAC_ARGS) com.sun.tools.javac.Main
+NEW_JAVADOC = $(BOOTSTRAP_JAVAC_ARGS) com.sun.tools.javadoc.Main
+
 # Base flags for RC
 # Guarding this against resetting value. Legacy make files include spec multiple
 # times.
@@ -440,10 +475,13 @@ CCACHE:=@CCACHE@
 # CD is going away, but remains to cater for legacy makefiles.
 CD:=cd
 CHMOD:=@CHMOD@
+COMM:=@COMM@
 CP:=@CP@
+CPIO:=@CPIO@
 CUT:=@CUT@
 DATE:=@DATE@
 DIFF:=@DIFF@
+DIRNAME:=@DIRNAME@
 FIND:=@FIND@
 FIND_DELETE:=@FIND_DELETE@
 ECHO:=@ECHO@
@@ -468,6 +506,7 @@ TEE:=@TEE@
 TIME:=@TIME@
 TR:=@TR@
 TOUCH:=@TOUCH@
+UNIQ:=@UNIQ@
 WC:=@WC@
 XARGS:=@XARGS@
 ZIPEXE:=@ZIP@
@@ -485,6 +524,7 @@ FILE:=@FILE@
 HG:=@HG@
 OBJCOPY:=@OBJCOPY@
 SETFILE:=@SETFILE@
+XATTR:=@XATTR@
 
 FIXPATH:=@FIXPATH@
 
@@ -502,6 +542,7 @@ endif
 
 # Build setup
 ENABLE_JFR=@ENABLE_JFR@
+ENABLE_INTREE_EC=@ENABLE_INTREE_EC@
 USE_EXTERNAL_LIBJPEG:=@USE_EXTERNAL_LIBJPEG@
 USE_EXTERNAL_LIBGIF:=@USE_EXTERNAL_LIBGIF@
 USE_EXTERNAL_LIBZ:=@USE_EXTERNAL_LIBZ@
@@ -596,9 +637,28 @@ INSTALL_SYSCONFDIR=@sysconfdir@
 # Name of Service Agent library
 SALIB_NAME=@SALIB_NAME@
 
+INCLUDE_SA=@INCLUDE_SA@
+
 OS_VERSION_MAJOR:=@OS_VERSION_MAJOR@
 OS_VERSION_MINOR:=@OS_VERSION_MINOR@
 OS_VERSION_MICRO:=@OS_VERSION_MICRO@
+
+# Images directory definitions
+JDK_IMAGE_SUBDIR:=j2sdk-image
+JRE_IMAGE_SUBDIR:=j2re-image
+JDK_OVERLAY_IMAGE_SUBDIR:=j2sdk-overlay-image
+JRE_OVERLAY_IMAGE_SUBDIR:=j2re-overlay-image
+# Colon left out to be able to override output dir for bootcycle-images
+JDK_IMAGE_DIR=$(IMAGES_OUTPUTDIR)/$(JDK_IMAGE_SUBDIR)
+JRE_IMAGE_DIR=$(IMAGES_OUTPUTDIR)/$(JRE_IMAGE_SUBDIR)
+JDK_OVERLAY_IMAGE_DIR=$(IMAGES_OUTPUTDIR)/$(JDK_OVERLAY_IMAGE_SUBDIR)
+JRE_OVERLAY_IMAGE_DIR=$(IMAGES_OUTPUTDIR)/$(JRE_OVERLAY_IMAGE_SUBDIR)
+
+# Macosx bundles directory definitions
+JDK_BUNDLE_SUBDIR=j2sdk-bundle/jdk$(JDK_VERSION).jdk/Contents
+JRE_BUNDLE_SUBDIR=j2re-bundle/jre$(JDK_VERSION).jre/Contents
+JDK_BUNDLE_DIR=$(IMAGES_OUTPUTDIR)/$(JDK_BUNDLE_SUBDIR)
+JRE_BUNDLE_DIR=$(IMAGES_OUTPUTDIR)/$(JRE_BUNDLE_SUBDIR)
 
 BUILD_AARCH64:=@BUILD_AARCH64@
 BUILD_AARCH64_C2:=@BUILD_AARCH64_C2@
