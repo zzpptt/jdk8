@@ -5,7 +5,8 @@ Overview
 
 The current AArch64 port of OpenJDK allows execution of a template
 interpreter implemented using JITted AArch64 code. It does not yet
-include implementations of the C1 and C2 JIT compilers for AArch64.
+include complete implementations of the C1 and C2 JIT compilers for
+AArch64.
 
 In the absence of available ARMv8 hardware the AArch64 JVM has to run
 on x86 hardware (and, for the moment, only on the Linux operating
@@ -39,31 +40,22 @@ Obtaining the AArch64 Sources Using Mercurial
 
 The sources for the port are contained in 3 mercurial repositories.
 
-[[
-currently these are located on a Red Hat internal server
-to-openjdk1.usersys.redhat.com and you need to be a member of the
-simulator group on that host in prder to be able to rread and write
-the repository. Current members are adinn aph, jcm, chrisp, rkennke.
-]]
+To access the repos you need to execute the following command in a
+root directory of your choice
 
-To access the repos you need to execut the following command in a root
-directory of your choice
+  $ hg clone http://hg.openjdk.java.net/aarch64-port/jdk8/ jdk8
 
-  $ hg clone ssh://<@to-openjdk1.usersys.redhat.com//mirrored/hg/confidential/aarm64/jdk8
+  $ hg clone http://hg.code.sf.net/p/smallaarch64sim/code simulator 
 
-  $ hg clone ssh://<@to-openjdk1.usersys.redhat.com//mirrored/hg/confidential/aarm64/simulator
+  $ hg clone http://hg.code.sf.net/p/binutilsaarch64/code binutils
 
-  $ hg clone ssh://<@to-openjdk1.usersys.redhat.com//mirrored/hg/confidential/aarm64/binutils-2.23.1
+You should ensure all 3 repos sit side by side under the same root
+directory.
 
-[[
-For the moment you should ensure all 3 repos sit side by side under the
-same root directory.
-]]
-
-The jdk8 tree needs to be populated with the necessary subrepos using
-get_source.sh (but see below for gotchas). The other repos are
-complete as is. Once you have populated the subrepos of jdk8 you will
-find the AArch64-specific code in subdirectories
+The jdk8 tree needs to be populated with the necessary subrepos by
+executing script get_source.sh (command 'bash get_source.sh). The
+other repos are complete as is. Once you have populated the subrepos
+of jdk8 you will find the AArch64-specific code in subdirectories
 
   jdk8/hotspot/src/cpu/aarch64
 
@@ -72,52 +64,50 @@ and
   jdk8/hotspot/src/os_cpu/linux_aarch64/
 
 Note however that some of the shared code and the make scripts contain
-AArch64 specific code. All such code should be guarded by conditional
-tests which depend upon the variables TARGET_ARCH_aarch64 (C++ #ifdef)
-or BUILD_AARCH64 (makefiles ifeq) being defined or upon variable
-SRCARCH having value aarch64 (makefiles ifeq).
+AArch64 specific code. All such code is guarded by conditional tests
+which depend upon the variables TARGET_ARCH_aarch64 (C++ #ifdef) or
+BUILD_AARCH64 (makefiles ifeq) being defined or upon variable SRCARCH
+having value aarch64 (makefiles ifeq).
 
+Build an x86 JVM from the tree in jdk8
+--------------------------------------
+
+In order to bootstrap the AArch64 build you need to use a JDK8 JVM as
+the bootstrap JVM. You can build a compatible JDK8 JVM from the source
+tree you have just download. First configure the build by executing
+
+  cd jdk8
+  bash ./configure
+
+This will a Makefile in a subdirectory of build -- on an x86_64
+architecture this will be found in
+
+  build/linux-x86_64-normal-server-release/Makefile
+
+Depending upon your hardware the name may be slightly different
+(e.g. amd64 instead of x86_64).
+
+You need to run the following commands to build the JDK8 JVM
+
+  cd build/linux-x86_64-normal-server-release
+  make images
+
+When this build completes you need to make a copy of the resulting jdk
+image and use this as your bootstrap JDK. From your top level roto
+(above jdk8) execute the following
+
+  cp -r jdk8/build/linux-x86_64-normal-server-release/images/j2sdk-image j2sdk-image
 
 Building the AArch64 JVM
 ------------------------
 
-You need to satisfy all the usual requirements for building JDK8 as
-detailed in jdk8/README. However, there are a few extra provisos to
-these standard install requirements which you need to follow before
-attempting to make the JVM itself.
-
-1) You may find a problem when you by execute script get_sources.sh to
-populate the subrepos under the jdk8 directory
-
-  $ cd jdk8
-  $ ./get_source.sh
-
-There is a bug in the underlying script jdk8/common/bin/hgforest.sh
-which means it cannot cope with URLs containing a double slash at the
-start of the path component (i.e. a URL like ours which uses an
-absolute path to the repo directory /mirrored/hg/...). This will cause
-the hg clone command in to fail. You can fix this by tweaking the
-script at line 543 replacing
-
-        pull_newrepo="`echo ${pull_base}/${i} | sed -e 's@\([^:]/\)//*@\1@g'`"
-
-with
-
-        pull_newrepo="`echo ${pull_base}/${i} | sed -e 's@\([^:]/\)/*@\1@g'`"
-
-2) You will need to employ a JDK8 release JVM as the bootstrap JVM for
-building teh AArch64 JVM. Obtain a fresh copy fo the jdk8 tree from
-hg.openjdk.java.net and build it following the normal build
-insructions. You can the set ALT_BOOTDIR to point to the j2sdk-image
-subdirectory of your build tree in order to use this jdk8 JVM to build
-the AArch64 JVM
-
-3) You will need to download an ant release (binary is fine so long as
-the vewrsion is >= 1.7.2) and set ANT_HOME to point to this release
-(i.e. to the dir containing the bin/ant). This is a workaround for a
-change in the way jdk reports its version which breaks some of the
-scrtipts ant uses to identify which java version to use. It is
-necessary even if you have ant already installed on your system.
+As a precursor, you will need to download an ant release (binary is
+fine so long as the vewrsion is >= 1.7.2) and set ANT_HOME to point to
+this release (i.e. to the dir containing the bin/ant). This is a
+workaround for a change in the way jdk8 reports its version which
+breaks some of the scrtipts ant uses to identify which java version to
+use. n.b. this step is necessary even if you have ant already
+installed on your system.
 
 Before attempting to make the JVM itself you will need to make the
 simulator library. From your root directory execute
@@ -133,17 +123,17 @@ From your root directory execute
   $ cd jdk8
   $ unset JAVA_HOME
   $ export LANG=C
-  $ export ALT_BOOTDIR=/path/to/my/jdk8/build/*/j2sdk-image
+  $ export ALT_BOOTDIR=/path/to/my/download/root/j2sdk-image
   $ export ANT_HOME=/path/to/my/ant/download
   $ make debug_build NO_DOCS=true BUILD_AARCH64=true
   $ cp hotspot/src/share/tools/hsdis/build/linux-amd64/hsdis-amd64.so \
     build/linux-amd64-debug/j2sdk-image/jre/lib/amd64/
 
-n.b. the final cp command installs the disassembler librray used to
+n.b. the final cp command installs the disassembler library used to
 disassemble AArch64 code. it is only appropriate after you have built
-the disassembler librray hsdis-amd64.so (see below) but you will need
-to execute it whenevr you rebuild the JVM so I include it in my build
-script as an automatic step
+the disassembler library hsdis-amd64.so (see below) but you will need
+to execute it whenever you rebuild the JVM so it is included in the
+command above to ensure you don't forget it on subsequent builds.
 
 After a few cups of coffee you should find the AArch64 JVM image under
 your build directory
@@ -168,20 +158,12 @@ all the other subrepos
 
   $ unset JAVA_HOME
   $ export LANG=C
-  $ export ALT_BOOTDIR=/path/to/my/jdk8/build/*/j2sdk-image
+  $ export ALT_BOOTDIR=/path/to/my/download/root/j2sdk-image
   $ export ANT_HOME=/path/to/my/ant/download
   $ make debug_build NO_DOCS=true BUILD_AARCH64=true BUILD_LANGTOOLS=false BUILD_CORBA=false BUILD_JAXP=false BUILD_JAXWS=false BUILD_JDK=false && \
     cp hotspot/src/share/tools/hsdis/build/linux-amd64/hsdis-amd64.so \
     build/linux-amd64-debug/j2sdk-image/jre/lib/amd64/
 
-
-n.b. if you omit the make argument BUILD_AARCH64=true from the make
-commands provided above then you should be able to build a normal x86
-jdk using the AArch64 source tree. You will need to delete jdk8/build
-first of course to ensure that you x86 build is done completely from
-scratch. This is a useful sanity check for ensuring that modifications
-to shared code are safely located within #if conditions that isolate
-them to the aarch64 build.
 
 Building the Disassembler Library
 ---------------------------------
