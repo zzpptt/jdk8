@@ -88,11 +88,6 @@ JVM_VARIANT_KERNEL=`$ECHO "$JVM_VARIANTS" | $SED -e '/,kernel,/!s/.*/false/g' -e
 JVM_VARIANT_ZERO=`$ECHO "$JVM_VARIANTS" | $SED -e '/,zero,/!s/.*/false/g' -e '/,zero,/s/.*/true/g'`
 JVM_VARIANT_ZEROSHARK=`$ECHO "$JVM_VARIANTS" | $SED -e '/,zeroshark,/!s/.*/false/g' -e '/,zeroshark,/s/.*/true/g'`
 
-if test "x$JVM_VARIANT_CLIENT" = xtrue; then
-    if test "x$OPENJDK_TARGET_CPU_BITS" = x64; then
-        AC_MSG_ERROR([You cannot build a client JVM for a 64-bit machine.])
-    fi
-fi
 if test "x$JVM_VARIANT_KERNEL" = xtrue; then
     if test "x$OPENJDK_TARGET_CPU_BITS" = x64; then
         AC_MSG_ERROR([You cannot build a kernel JVM for a 64-bit machine.])
@@ -126,6 +121,9 @@ if test "x$JVM_VARIANT_ZERO" = xtrue ; then
     INCLUDE_SA=false
 fi
 if test "x$JVM_VARIANT_ZEROSHARK" = xtrue ; then
+    INCLUDE_SA=false
+fi
+if test "x$OPENJDK_TARGET_CPU" = xaarch64; then
     INCLUDE_SA=false
 fi
 AC_SUBST(INCLUDE_SA)
@@ -235,16 +233,6 @@ fi
 
 if test "x$JVM_VARIANT_ZEROSHARK" = xtrue; then
     HOTSPOT_TARGET="$HOTSPOT_TARGET${HOTSPOT_DEBUG_LEVEL}shark "
-fi
-
-if test "x$BUILD_AARCH64" = xtrue; then
-    if test "x$BUILD_AARCH64_C2" = xtrue; then
-        HOTSPOT_TARGET="jvmgaarch64 "
-	HOTSPOT_EXPORT=debug
-    else
-        HOTSPOT_TARGET="jvmg1aarch64 "
-	HOTSPOT_EXPORT=debug
-    fi
 fi
 
 HOTSPOT_TARGET="$HOTSPOT_TARGET docs export_$HOTSPOT_EXPORT"

@@ -48,6 +48,12 @@ AC_DEFUN([PLATFORM_EXTRACT_VARS_FROM_CPU],
       VAR_CPU_BITS=32
       VAR_CPU_ENDIAN=little
       ;;
+    aarch64)
+      VAR_CPU=aarch64
+      VAR_CPU_ARCH=aarch64
+      VAR_CPU_BITS=64
+      VAR_CPU_ENDIAN=little
+      ;;
     powerpc)
       VAR_CPU=ppc
       VAR_CPU_ARCH=ppc
@@ -339,6 +345,9 @@ AC_DEFUN([PLATFORM_SETUP_LEGACY_VARS],
       s390)
         ZERO_ARCHFLAG="-m31"
         ;;
+      aarch64)
+        ZERO_ARCHFLAG=""
+        ;;
       *)
         ZERO_ARCHFLAG="-m${OPENJDK_TARGET_CPU_BITS}"
     esac
@@ -502,14 +511,3 @@ if test "x$ENDIAN" != "x$OPENJDK_TARGET_CPU_ENDIAN"; then
     AC_MSG_ERROR([The tested endian in the target ($ENDIAN) differs from the endian expected to be found in the target ($OPENJDK_TARGET_CPU_ENDIAN)])
 fi
 ])
-
-AC_ARG_ENABLE([aarch64], [AS_HELP_STRING([--enable-aarch64],
-	[Enable build for AArch64])],
-	[BUILD_AARCH64="true"],)
-AC_SUBST(BUILD_AARCH64)
-
-
-AC_ARG_ENABLE([aarch64-c2], [AS_HELP_STRING([--enable-aarch64-c2],
-	[Enable C2 compiler for AArch64])],
-	[BUILD_AARCH64_C2="true"],)
-AC_SUBST(BUILD_AARCH64_C2)

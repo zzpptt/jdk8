@@ -660,9 +660,6 @@ JRE_BUNDLE_SUBDIR=j2re-bundle/jre$(JDK_VERSION).jre/Contents
 JDK_BUNDLE_DIR=$(IMAGES_OUTPUTDIR)/$(JDK_BUNDLE_SUBDIR)
 JRE_BUNDLE_DIR=$(IMAGES_OUTPUTDIR)/$(JRE_BUNDLE_SUBDIR)
 
-BUILD_AARCH64:=@BUILD_AARCH64@
-BUILD_AARCH64_C2:=@BUILD_AARCH64_C2@
-
 # Include the custom-spec.gmk file if it exists
 -include $(dir @SPEC@)/custom-spec.gmk
 
