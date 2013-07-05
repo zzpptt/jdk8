@@ -1,0 +1,12 @@
+#!/bin/sh -e
+IWD=`(cd ..;pwd)`
+	if [ ! -d $IWD/sysroots ]; then
+	  echo "$IWD/sysroots not found!!!"
+	  echo "Please either install sysroots in $IWD/sysroots, or link $IWD/sysroots to your installed sysroots."
+	  echo "For a limited period of time a pre-populated sysroots may be downloaded from http://people.linaro.org/~edward.nevill/sysroots.tar.gz"
+	  exit 1
+	fi
+mkdir -p /tmp/oe_45434e/jenkins-setup/build/tmp-eglibc
+ln -f -s $IWD/sysroots /tmp/oe_45434e/jenkins-setup/build/tmp-eglibc/
+ALT_SDT_H=$IWD/sysroots/genericarmv8/usr/include/sys/sdt.h
+make images

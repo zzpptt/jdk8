@@ -4,18 +4,29 @@ Overview
 --------
 
 The current AArch64 port of OpenJDK allows execution of a template
-interpreter implemented using JITted AArch64 code. It does not yet
-include complete implementations of the C1 and C2 JIT compilers for
-AArch64.
+interpreter implemented using JITted AArch64 code and a C1 JIT
+compiler which generates AArch64 code. It does not yet include a
+complete implementation of the C2 JIT compiler.
 
-In the absence of available ARMv8 hardware the AArch64 JVM has to run
-on x86 hardware (and, for the moment, only on the Linux operating
-system). The JVM operates in 'mixed mode'. The compiled C++ code which
-makes up the bulk of the JVM core is compiled to x86 code and executes
-as an x86 binary. However, all JITted code is in AArch64 machine code
-format; this includes a small number of runtime stub routines as well
-as the template intrepreter code and the code output by the C1/C2
-JITs.
+In the absence of available ARMv8 hardware the AArch64 JVM has to
+employ a simulator to execute the AArch64 code. There are two modes of
+operation. The first is to cross-compile the ported JVM code to an
+AArch64 executable/libraries and then run it on ARM's fastmodel
+simulator. This option requires downloading bothe ARM's fastmodel
+simulator and an ARM Linux disribution (root tree) onto your host
+system. This mode is slow and has limited debug support but it
+exercises the full target stack of JITted code, compiled JVM and
+operating system code exactly as it will operate when real hardware
+becomes available.
+
+The second mode of operation is to run the ported JVM compiled for x86
+hardware and Linux and use of the porting project's small AArch64
+simulator to execute AArch64 code. With this option the JVM operates
+in 'mixed mode'. The compiled C++ code which makes up the bulk of the
+JVM core is compiled to native x86 binary/libraries.  However, all
+JITted code is in AArch64 machine code format; this includes a small
+number of runtime stub routines as well as the template intrepreter
+code and the code output by the C1/C2 JITs.
 
 The JVM employs upon a small (and only partially complete) functional
 simulator to execute the JITted AArch64 code. When a transition is
@@ -29,33 +40,42 @@ frame on the original stack executing native x86 code once again. So,
 execution of JITted AArch64 code happens transparently when running
 the x86 binary.
 
-It is possible to debug execution of the simulator under gdb. A suite
-of gdb commands have been provided which make it possible to trace,
-break and step through JITted code either at the AARch64 instruction
-or at the bytecode level. This includes automatic disassembly of
-AArch64 instructions and bytecodes.
+It is possible to debug execution of the small AArch64 simulator under
+gdb. A suite of gdb commands have been provided which make it possible
+to trace, break and step through JITted code either at the AARch64
+instruction or at the bytecode level. This includes automatic
+disassembly of AArch64 instructions and bytecodes.
 
 Obtaining the AArch64 Sources Using Mercurial
 ---------------------------------------------
 
-The sources for the port are contained in 3 mercurial repositories.
+The sources for the JVM port are contained in the porting project's
+mercurial repository on the OpenJDK HG server
 
-To access the repos you need to execute the following command in a
-root directory of your choice
+To obtain a copy of the JVM code you need to execute the following
+command in a root directory of your choice
 
   $ hg clone http://hg.openjdk.java.net/aarch64-port/jdk8/ jdk8
+
+The jdk8 tree needs to be populated with the necessary subrepos by
+executing script get_source.sh (command 'bash get_source.sh).
+
+If you wish to use the small AArch64 simulator and its debug
+capabilities you will need to download and populate two other
+mercurial repos
 
   $ hg clone http://hg.code.sf.net/p/smallaarch64sim/code simulator 
 
   $ hg clone http://hg.code.sf.net/p/binutilsaarch64/code binutils
 
-You should ensure all 3 repos sit side by side under the same root
-directory.
+Note, however, that the configure scripts for the simulator build will
+automatically download these repositories if they are not present.
 
-The jdk8 tree needs to be populated with the necessary subrepos by
-executing script get_source.sh (command 'bash get_source.sh). The
-other repos are complete as is. Once you have populated the subrepos
-of jdk8 you will find the AArch64-specific code in subdirectories
+n.b. if you download by hand you must ensure all 3 repos sit side by
+side under the same root directory.
+
+Once you have populated the subrepos of jdk8 you will find the
+AArch64-specific code in subdirectories
 
   jdk8/hotspot/src/cpu/aarch64
 
@@ -65,80 +85,92 @@ and
 
 Note however that some of the shared code and the make scripts contain
 AArch64 specific code. All such code is guarded by conditional tests
-which depend upon the variables TARGET_ARCH_aarch64 (C++ #ifdef) or
-BUILD_AARCH64 (makefiles ifeq) being defined or upon variable SRCARCH
-having value aarch64 (makefiles ifeq).
+which depend upon the variables TARGET_ARCH_aarch64 and BUILTIN_SIM
+being defined or upon variable SRCARCH. The former is only the JVM
+code is configured to build for AArch64 and the latter only defined
+when configured to build using the small AArch64 simulator.
 
-Build an x86 JVM from the tree in jdk8
+As a sanity check it should be possible to build a standard x86/Linus
+JVM from the jdk8 tree by following the normal OpenJDK build process.
+
+Setting up ARM's fastmodel simulator
+------------------------------------
+
+<to be added>
+
+Building for ARM's fastmodel simulator
 --------------------------------------
 
-In order to bootstrap the AArch64 build you need to use a JDK8 JVM as
-the bootstrap JVM. You can build a compatible JDK8 JVM from the source
-tree you have just download. First configure the build by executing
+To configure an ARM fastmodel simulator build execute the following
+command in your top-level download (jdk8) directory
 
-  cd jdk8
-  bash ./configure
+  $ bash cross_configure
 
-This will a Makefile in a subdirectory of build -- on an x86_64
-architecture this will be found in
+You need to have a AArch64 Linux root tree installed on your system
+and linked as ./sysroot. The script will fail if this is not present.
+(Read the error messages or the script for instructions on how to
+obtain and install an AArch64 Linux tree).
 
-  build/linux-x86_64-normal-server-release/Makefile
+To build the JVM for execution using ARM's simulator execute the
+following command in your top-level download (jdk8) directory
 
-Depending upon your hardware the name may be slightly different
-(e.g. amd64 instead of x86_64).
+  $ bash cross_compile
 
-You need to run the following commands to build the JDK8 JVM
+After a few cups of coffee you should find that the AArch64 JVM sdk
+and jre images have been installed into your sysroot tree (they should
+appear as /j2sdk-image and /j2re-image)
 
-  cd build/linux-x86_64-normal-server-release
-  make images
+Running the JVM using ARM's fastmodel simulator
+-----------------------------------------------
 
-When this build completes you need to make a copy of the resulting jdk
-image and use this as your bootstrap JDK. From your top level roto
-(above jdk8) execute the following
+<to be expanded>
 
-  cp -r jdk8/build/linux-x86_64-normal-server-release/images/j2sdk-image j2sdk-image
+To exercise the resulting image you have to boot Linux on the
+simulator and then at the # prompt type in
 
-Building the AArch64 JVM
-------------------------
+  # ./jsdk-image/bin/javac Queens.java
+  # ./j2re-image/bin/java Queens
 
-As a precursor, you will need to download an ant release (binary is
-fine so long as the vewrsion is >= 1.7.2) and set ANT_HOME to point to
-this release (i.e. to the dir containing the bin/ant). This is a
-workaround for a change in the way jdk8 reports its version which
-breaks some of the scrtipts ant uses to identify which java version to
-use. n.b. this step is necessary even if you have ant already
-installed on your system.
+Building on the small AArch64 simulator
+---------------------------------------
 
-Before attempting to make the JVM itself you will need to make the
-simulator library. From your root directory execute
+To configure a small AArch64 simulator build execute the following
+command in your top-level download (jdk8) directory
 
-  $ cd simulator
-  $ make
+  $ bash sim_configure
 
-There is no need for coffee as it should take just a few seconds.
+This should automatically download the simulator and binutils repos,
+locating them in ../simulator and ./binutils, respectively.
 
-Once the simulator is in place you can build the AArch64 JVM itself.
-From your root directory execute
+If the configure script tells you that you are mssing packages then
+download and install them and try again.
 
-  $ cd jdk8
-  $ unset JAVA_HOME
-  $ export LANG=C
-  $ export ALT_BOOTDIR=/path/to/my/download/root/j2sdk-image
-  $ export ANT_HOME=/path/to/my/ant/download
-  $ make debug_build NO_DOCS=true BUILD_AARCH64=true
-  $ cp hotspot/src/share/tools/hsdis/build/linux-amd64/hsdis-amd64.so \
-    build/linux-amd64-debug/j2sdk-image/jre/lib/amd64/
+To build the JVM for execution using the small AArch64 simulator
+execute the following command in your top-level download (jdk8)
+directory
 
-n.b. the final cp command installs the disassembler library used to
-disassemble AArch64 code. it is only appropriate after you have built
-the disassembler library hsdis-amd64.so (see below) but you will need
-to execute it whenever you rebuild the JVM so it is included in the
-command above to ensure you don't forget it on subsequent builds.
+  $ bash sim_compile
+
+This should automatically compile the code in ../simulator producing
+shared library ../simulator/libarmsim.so
+
+This should also automatically compile the AArch64 JVM disassembler
+library located in hotspot/src/share/tools/hsdis, using the binutils
+coe in ../binutils to provide the AArch64-specific decompile routines.
+The resulting library should be installed in the generated j2sdk image
+tree as file jre/lib/aarch64/hsdis-aarch64.so.
+
+n.b the configure script assumes you have a JDK7 release installed
+under
+
+  /usr/lib/jvm/java-1.7.0-openjdk.x86_64
+
+You may need to modify the script to speficy the correct location.
 
 After a few cups of coffee you should find the AArch64 JVM image under
 your build directory
 
-  $ ls -C1 build/linux-amd64-debug/j2sdk-image
+  $ ls -C1 build/linux-aarch64-normal-client-slowdebug/images/j2sdk-image
   ASSEMBLY_EXCEPTION
   bin
   demo
@@ -152,44 +184,8 @@ your build directory
   src.zip
   THIRD_PARTY_README
 
-If you want to rebuild the JVM after tweaking some of the hotspot
-source code you can use the following commands which avoid rebuilding
-all the other subrepos
-
-  $ unset JAVA_HOME
-  $ export LANG=C
-  $ export ALT_BOOTDIR=/path/to/my/download/root/j2sdk-image
-  $ export ANT_HOME=/path/to/my/ant/download
-  $ make debug_build NO_DOCS=true BUILD_AARCH64=true BUILD_LANGTOOLS=false BUILD_CORBA=false BUILD_JAXP=false BUILD_JAXWS=false BUILD_JDK=false && \
-    cp hotspot/src/share/tools/hsdis/build/linux-amd64/hsdis-amd64.so \
-    build/linux-amd64-debug/j2sdk-image/jre/lib/amd64/
-
-
-Building the Disassembler Library
----------------------------------
-
-In order to be able to disassemble AArch64 code when debugging you
-need to build the hsdis library with aarch64-linux as the target type
-for disassembly. This uses the disassembly routines located under the
-hotspot subrepo of jdk8 plus the code contributed by ARM to the
-binutils-2.23.1 release. However, we have made a few tweaks to the
-binutils routines so you need to build the library using our binutils
-repo.
-
-To do this you need to execute the following commands
-
-  $ cd jdk8
-  $ cd hotspot/src/share/tools/hsdis/
-  $ make clean BUILD_AARCH64=true
-  rm -rf build/linux-amd64
-  $ make BINUTILS=../../../../../../binutils-2.23.1 BUILD_AARCH64=true
-    . . .
-  $ cd ../../../../..
-  $ cp hotspot/src/share/tools/hsdis/build/linux-amd64/hsdis-amd64.so \
-      build/linux-amd64-debug/j2sdk-image/jre/lib/amd64/
-
-Running the AArch64 JVM
------------------------
+Running the JVM using the small AArch64 simulator
+-------------------------------------------------
 
 You can run the JVM merely by executing the binaries under your
 j2sdk-image directory, For example, assuming you have a copy of
@@ -197,9 +193,9 @@ Hello.java in your jdk8 directory
 
   $ cd jdk8
   $ javac Hello.java
-  $ build/linux-amd64-debug/j2sdk-image/bin/java Hello
+  $ build/linux-aarch64-normal-client-slowdebug/j2sdk-image/bin/java Hello
   Hello world!
-  $ time build/linux-amd64-debug/j2sdk-image/bin/javac Hello.java
+  $ time build/linux-aarch64-normal-client-slowdebug/j2sdk-image/bin/javac Hello.java
 
   real	1m20.217s
   user	1m20.227s
@@ -213,8 +209,8 @@ from gdb in order to obtain access to a set of commands which allow
 you to trace, break, step, disassemble and inspect the processor state
 when executing AArch64 code in the simulator.
 
-  $ cd jd8
-  $ gdb build/linux-amd64-debug/j2sdk-image/bin/java
+  $ cd jdk8
+  $ gdb build/linux-aarch64-normal-client-slowdebug/j2sdk-image/bin/java
    . . .
   (gdb) source ../simulator/simgdbinit
   (gdb) help simtrace
@@ -259,7 +255,7 @@ starts executing AArch64 code
   Starting program: .../jdk8/build/linux-amd64-debug/j2sdk-image/bin/java 
   . . .
   [New Thread 0x7ffff5b90700 (LWP 15476)]
-  [15476] Loaded disassembler from .../jdk8/build/linux-amd64-debug/j2sdk-image/jre/lib/amd64/hsdis-amd64.so
+  [15476] Loaded disassembler from .../jdk8/buildlinux-aarch64-normal-client-slowdebug/j2sdk-image/jre/lib/amd64/hsdis-aarch64.so
   [Disassembling for mach='aarch64']
     0x00007fffee07a6a0: stp	xfp, xlr, [sp,#-16]!
 
