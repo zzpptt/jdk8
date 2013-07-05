@@ -96,7 +96,13 @@ JVM from the jdk8 tree by following the normal OpenJDK build process.
 Setting up ARM's fastmodel simulator
 ------------------------------------
 
-<to be added>
+Full details of how to obtain and set up ARM's fastmodel simulator and
+how to to the AArch64 JVM for use on the fastmodel are provided at
+
+  http://people.linaro.org/~edward.nevill/aarch64/README-cross-compile.html
+
+The next few sections briefly summarise the steps needed to configure,
+compile and run on the fastmodel.
 
 Building for ARM's fastmodel simulator
 --------------------------------------
@@ -122,8 +128,6 @@ appear as /j2sdk-image and /j2re-image)
 
 Running the JVM using ARM's fastmodel simulator
 -----------------------------------------------
-
-<to be expanded>
 
 To exercise the resulting image you have to boot Linux on the
 simulator and then at the # prompt type in
