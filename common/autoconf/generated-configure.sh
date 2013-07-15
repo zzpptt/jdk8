@@ -29066,7 +29066,7 @@ LEGACY_EXTRA_LDFLAGS=$with_extra_ldflags
 #
 case $COMPILER_NAME in
       gcc )
-      	  CCXXFLAGS_JDK="$CCXXFLAGS $CCXXFLAGS_JDK -W -Wall -Wno-unused -Wno-parentheses \
+      	  CCXXFLAGS_JDK="$CCXXFLAGS $CCXXFLAGS_JDK -W -Wall -Wno-unused -Wno-unused-parameter -Wno-parentheses \
                           -pipe \
                           -D_GNU_SOURCE -D_REENTRANT -D_LARGEFILE64_SOURCE"
 	  case $OPENJDK_TARGET_CPU_ARCH in
