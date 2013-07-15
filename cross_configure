@@ -25,4 +25,4 @@ export NM="aarch64-oe-linux-nm"
 export AS="aarch64-oe-linux-as"
 export AR="aarch64-oe-linux-ar"
 export PATH="$IWD/sysroots/x86_64-linux/usr/bin/aarch64-oe-linux:$IWD/sysroots/genericarmv8/usr/bin/crossscripts:$IWD/sysroots/x86_64-linux/usr/sbin:$IWD/sysroots/x86_64-linux/usr/bin:$IWD/sysroots/x86_64-linux/sbin:$IWD/sysroots/x86_64-linux//bin:/usr/sbin:/usr/bin:/sbin:/bin"
-/usr/bin/bash ./configure --with-debug-level=release --with-jvm-variants=client --with-sys-root=$IWD/sysroots/genericarmv8 --enable-unlimited-crypto --openjdk-target=aarch64-oe-linux --with-cacerts-file=$IWD/sysroots/x86_64-linux/usr/lib/jvm/icedtea7-native/jre/lib/security/cacerts --with-zlib=system --with-stdc++lib=dynamic --with-boot-jdk=$IWD/sysroots/x86_64-linux/usr/lib/jvm/icedtea7-native
+sh ./configure --with-debug-level=release --with-jvm-variants=client --with-sys-root=$IWD/sysroots/genericarmv8 --enable-unlimited-crypto --openjdk-target=aarch64-oe-linux --with-cacerts-file=$IWD/sysroots/x86_64-linux/usr/lib/jvm/icedtea7-native/jre/lib/security/cacerts --with-zlib=system --with-stdc++lib=dynamic --with-boot-jdk=$IWD/sysroots/x86_64-linux/usr/lib/jvm/icedtea7-native 
