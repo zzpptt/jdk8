@@ -180,6 +180,9 @@ AC_ARG_WITH(override-hotspot, [AS_HELP_STRING([--with-override-hotspot],
 AC_ARG_WITH(override-jdk, [AS_HELP_STRING([--with-override-jdk],
 	[use this jdk dir for the build])])
 
+AC_ARG_WITH(override-nashorn, [AS_HELP_STRING([--with-override-nashorn],
+	[use this nashorn dir for the build])])
+
 if test "x$with_override_langtools" != x; then
     CURDIR="$PWD"
     cd "$with_override_langtools"

@@ -1006,6 +1006,7 @@ with_override_jaxp
 with_override_jaxws
 with_override_hotspot
 with_override_jdk
+with_override_nashorn
 with_import_hotspot
 with_msvcr_dll
 with_dxsdk
@@ -1760,6 +1761,7 @@ Optional Packages:
   --with-override-jaxws   use this jaxws dir for the build
   --with-override-hotspot use this hotspot dir for the build
   --with-override-jdk     use this jdk dir for the build
+  --with-override-nashorn use this nashorn dir for the build
   --with-import-hotspot   import hotspot binaries from this jdk image or
                           hotspot build dist dir instead of building from
                           source
@@ -15989,6 +15991,11 @@ fi
 # Check whether --with-override-jdk was given.
 if test "${with_override_jdk+set}" = set; then :
   withval=$with_override_jdk;
+fi
+
+# Check whether --with-override-nashorn was given.
+if test "${with_override_nashorn+set}" = set; then :
+  withval=$with_override_nashorn;
 fi
 
 
