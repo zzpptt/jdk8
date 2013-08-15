@@ -9,4 +9,4 @@ IWD=`(cd ..;pwd)`
 mkdir -p /tmp/oe_45434e/jenkins-setup/build/tmp-eglibc
 ln -f -s $IWD/sysroots /tmp/oe_45434e/jenkins-setup/build/tmp-eglibc/
 ALT_SDT_H=$IWD/sysroots/genericarmv8/usr/include/sys/sdt.h
-make images
+make STRIP_POLICY=no_strip POST_STRIP_CMD="" images

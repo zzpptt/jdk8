@@ -3774,7 +3774,7 @@ fi
 #CUSTOM_AUTOCONF_INCLUDE
 
 # Do not change or remove the following line, it is needed for consistency checks:
-DATE_WHEN_GENERATED=1372760061
+DATE_WHEN_GENERATED=1374148947
 
 ###############################################################################
 #
@@ -29073,7 +29073,7 @@ LEGACY_EXTRA_LDFLAGS=$with_extra_ldflags
 #
 case $COMPILER_NAME in
       gcc )
-      	  CCXXFLAGS_JDK="$CCXXFLAGS $CCXXFLAGS_JDK -W -Wall -Wno-unused -Wno-unused-parameter -Wno-parentheses \
+      	  CCXXFLAGS_JDK="$CCXXFLAGS $CCXXFLAGS_JDK -Wno-unused -Wno-unused-parameter -Wno-parentheses \
                           -pipe \
                           -D_GNU_SOURCE -D_REENTRANT -D_LARGEFILE64_SOURCE"
 	  case $OPENJDK_TARGET_CPU_ARCH in
