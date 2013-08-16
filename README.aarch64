@@ -8,43 +8,45 @@ interpreter implemented using JITted AArch64 code and a C1 JIT
 compiler which generates AArch64 code. It does not yet include a
 complete implementation of the C2 JIT compiler.
 
-In the absence of available ARMv8 hardware the AArch64 JVM has to
+In the absence of available ARMv8 hardware, the AArch64 JVM has to
 employ a simulator to execute the AArch64 code. There are two modes of
-operation. The first is to cross-compile the ported JVM code to an
-AArch64 executable/libraries and then run it on ARM's fastmodel
-simulator. This option requires downloading bothe ARM's fastmodel
-simulator and an ARM Linux disribution (root tree) onto your host
-system. This mode is slow and has limited debug support but it
-exercises the full target stack of JITted code, compiled JVM and
-operating system code exactly as it will operate when real hardware
-becomes available.
+operation.
 
-The second mode of operation is to run the ported JVM compiled for x86
-hardware and Linux and use of the porting project's small AArch64
-simulator to execute AArch64 code. With this option the JVM operates
-in 'mixed mode'. The compiled C++ code which makes up the bulk of the
-JVM core is compiled to native x86 binary/libraries.  However, all
-JITted code is in AArch64 machine code format; this includes a small
-number of runtime stub routines as well as the template intrepreter
-code and the code output by the C1/C2 JITs.
+The first is to run the ported JVM compiled for x86 hardware and Linux
+and use our small AArch64 simulator to execute AArch64 code. With this
+option the JVM operates in 'mixed mode'. The compiled C++ code which
+makes up the bulk of the JVM core is compiled to native x86
+binary/libraries.  However, all JITted code is in AArch64 machine code
+format; this includes a small number of runtime stub routines as well
+as the template interpreter code and the code output by the C1/C2
+JITs.
 
 The JVM employs upon a small (and only partially complete) functional
 simulator to execute the JITted AArch64 code. When a transition is
 made from VM code into JITted code the JVM switches execution into the
-simulator code (running on a spearate stack from the caller thread)
+simulator code (running on a separate stack from the caller thread)
 and uses the simulator to execute the JITed code. The JITted code
 locates its stack frames in the same stack as the compiled VM code and
-employs the same data layots as the compiled x86 code. If JITted code
+employs the same data layouts as the compiled x86 code. If JITted code
 calls back into x86 code the simulator reverts execution back to a
 frame on the original stack executing native x86 code once again. So,
 execution of JITted AArch64 code happens transparently when running
 the x86 binary.
 
-It is possible to debug execution of the small AArch64 simulator under
-gdb. A suite of gdb commands have been provided which make it possible
-to trace, break and step through JITted code either at the AARch64
+It is easy to debug execution of the small AArch64 simulator under
+gdb. A suite of gdb commands has been provided which makes it possible
+to trace, break and step through JITted code either at the AArch64
 instruction or at the bytecode level. This includes automatic
 disassembly of AArch64 instructions and bytecodes.
+
+The second mode of operation is to cross-compile the ported JVM to
+AArch64 executables/libraries and then run it on ARM's Foundation
+model simulator. This option requires downloading both the ARM's
+simulator and an ARM Linux distribution (root tree) onto your host
+system. This mode is slow and has limited debug support but it
+exercises the full target stack of JITted code, compiled JVM and
+operating system code similarly to how it will operate when real
+hardware becomes available.
 
 Obtaining the AArch64 Sources Using Mercurial
 ---------------------------------------------
@@ -52,8 +54,8 @@ Obtaining the AArch64 Sources Using Mercurial
 The sources for the JVM port are contained in the porting project's
 mercurial repository on the OpenJDK HG server
 
-To obtain a copy of the JVM code you need to execute the following
-command in a root directory of your choice
+To obtain a copy of the OpenJDK source code, execute the following
+command in a root directory of your choice:
 
   $ hg clone http://hg.openjdk.java.net/aarch64-port/jdk8/ jdk8
 
@@ -61,8 +63,7 @@ The jdk8 tree needs to be populated with the necessary subrepos by
 executing script get_source.sh (command 'bash get_source.sh).
 
 If you wish to use the small AArch64 simulator and its debug
-capabilities you will need to download and populate two other
-mercurial repos
+capabilities, download and populate two other mercurial repos:
 
   $ hg clone http://hg.code.sf.net/p/smallaarch64sim/code simulator 
 
@@ -93,65 +94,26 @@ when configured to build using the small AArch64 simulator.
 As a sanity check it should be possible to build a standard x86/Linus
 JVM from the jdk8 tree by following the normal OpenJDK build process.
 
-Setting up ARM's fastmodel simulator
-------------------------------------
-
-Full details of how to obtain and set up ARM's fastmodel simulator and
-how to to the AArch64 JVM for use on the fastmodel are provided at
-
-  http://people.linaro.org/~edward.nevill/aarch64/README-cross-compile.html
-
-The next few sections briefly summarise the steps needed to configure,
-compile and run on the fastmodel.
-
-Building for ARM's fastmodel simulator
---------------------------------------
-
-To configure an ARM fastmodel simulator build execute the following
-command in your top-level download (jdk8) directory
-
-  $ bash cross_configure
-
-You need to have a AArch64 Linux root tree installed on your system
-and linked as ./sysroot. The script will fail if this is not present.
-(Read the error messages or the script for instructions on how to
-obtain and install an AArch64 Linux tree).
-
-To build the JVM for execution using ARM's simulator execute the
-following command in your top-level download (jdk8) directory
-
-  $ bash cross_compile
-
-After a few cups of coffee you should find that the AArch64 JVM sdk
-and jre images have been installed into your sysroot tree (they should
-appear as /j2sdk-image and /j2re-image)
-
-Running the JVM using ARM's fastmodel simulator
------------------------------------------------
-
-To exercise the resulting image you have to boot Linux on the
-simulator and then at the # prompt type in
-
-  # ./jsdk-image/bin/javac Queens.java
-  # ./j2re-image/bin/java Queens
+Using the small AArch64 simulator
+=================================
 
 Building on the small AArch64 simulator
 ---------------------------------------
 
-To configure a small AArch64 simulator build execute the following
-command in your top-level download (jdk8) directory
+To configure a small AArch64 simulator build, execute the following
+command in your top-level download (jdk8) directory:
 
   $ bash sim_configure
 
 This should automatically download the simulator and binutils repos,
 locating them in ../simulator and ./binutils, respectively.
 
-If the configure script tells you that you are mssing packages then
+If the configure script tells you that you are missing packages then
 download and install them and try again.
 
-To build the JVM for execution using the small AArch64 simulator
+To build the JVM for execution using the small AArch64 simulator,
 execute the following command in your top-level download (jdk8)
-directory
+directory:
 
   $ bash sim_compile
 
@@ -160,7 +122,7 @@ shared library ../simulator/libarmsim.so
 
 This should also automatically compile the AArch64 JVM disassembler
 library located in hotspot/src/share/tools/hsdis, using the binutils
-coe in ../binutils to provide the AArch64-specific decompile routines.
+code in ../binutils to provide the AArch64-specific decompile routines.
 The resulting library should be installed in the generated j2sdk image
 tree as file jre/lib/aarch64/hsdis-aarch64.so.
 
@@ -169,7 +131,7 @@ under
 
   /usr/lib/jvm/java-1.7.0-openjdk.x86_64
 
-You may need to modify the script to speficy the correct location.
+You may need to modify the script to specify the correct location.
 
 After a few cups of coffee you should find the AArch64 JVM image under
 your build directory
@@ -240,8 +202,8 @@ though and inspect the state of the compiled C++ JVM code.
 
 All the commands provided in the script start with the prefix
 sim. They are all documented (read the file for details or type help
-command in gdb to reead the help text online). Also, they can all be
-identified using autocompletion (type the prefix and hit tab).
+command in gdb to read the help text online). Also, they can all be
+identified using auto-completion (type the prefix and hit tab).
 
 Unfortunately, all the sim commands are implemented by calling out to
 methods implemented by class Simulator so you cannot use them until
@@ -292,8 +254,8 @@ You can step to a bytecode boundary by using simstepbc
 So, it appears we have entered the class initializer for class Object
 which is the first Java method which gets executed during the
 bootstrap. If you switch on instruction trace you can see the
-instructons which execute a specific bytecode followed by the
-threading code whcih reads the next bytecode and jumps to the address
+instructions which execute a specific bytecode followed by the
+threading code which reads the next bytecode and jumps to the address
 in template interpreter's dispatch table implementing that bytecode
 
   (gdb) simtrace 1
@@ -428,16 +390,61 @@ We can also look at the stack frame contents using simprint
         . . .
   (gdb) 
 
-The frame includes slots where the values cahced in registers are
+The frame includes slots where the values cached in registers are
 written back. These sit below the area used for the expression stack
 and for marshalling call arguments. initial_sp points usually points
-to itself, idenitfying the point where stacked expression values
-begin. However in a method which empoys synchronization the expression
+to itself, identifying the point where stacked expression values
+begin. However in a method which employs synchronization the expression
 stack sits on top of a block of monitor objects and initial_sp points
-ot the top of this block.
+to the top of this block.
 
 Notice that the locals pointer for the current frame points back to a
 data area allocated below the frame pointer at the top of the previous
-frame. If the method receives N parameter words tehn the first N
+frame. If the method receives N parameter words then the first N
 locals slots contain the values stacked before making the call.
+
+Using ARM's Foundation model simulator
+======================================
+
+Setting up ARM's Foundation model simulator
+-------------------------------------------
+
+Full details of how to obtain and set up ARM's Foundation model simulator and
+how to to the AArch64 JVM for use on the Foundation model are provided at
+
+  http://people.linaro.org/~edward.nevill/aarch64/README-cross-compile.html
+
+The next few sections briefly summarise the steps needed to configure,
+compile and run on the Foundation model.
+
+Building for ARM's Foundation model simulator
+---------------------------------------------
+
+To configure an ARM Foundation model simulator build execute the following
+command in your top-level download (jdk8) directory
+
+  $ bash cross_configure
+
+You need to have a AArch64 Linux root tree installed on your system
+and linked as ./sysroot. The script will fail if this is not present.
+(Read the error messages or the script for instructions on how to
+obtain and install an AArch64 Linux tree).
+
+To build the JVM for execution using ARM's simulator execute the
+following command in your top-level download (jdk8) directory
+
+  $ bash cross_compile
+
+After a few cups of coffee you should find that the AArch64 JVM sdk
+and jre images have been installed into your sysroot tree (they should
+appear as /j2sdk-image and /j2re-image)
+
+Running the JVM using ARM's Foundation model simulator
+------------------------------------------------------
+
+To exercise the resulting image you have to boot Linux on the
+simulator and then at the # prompt type in
+
+  # ./jsdk-image/bin/javac Queens.java
+  # ./j2re-image/bin/java Queens
 
