@@ -989,6 +989,9 @@ EOF
     x86_64:Linux:*:*)
 	echo x86_64-unknown-linux-gnu
 	exit ;;
+    aarch64:Linux:*:*)
+	echo aarch64-unknown-linux-gnu
+	exit ;;
     xtensa*:Linux:*:*)
     	echo ${UNAME_MACHINE}-unknown-linux-gnu
 	exit ;;
