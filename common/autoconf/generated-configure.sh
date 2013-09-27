@@ -7132,9 +7132,6 @@ $as_echo "$COMPILE_TYPE" >&6; }
     fi
 
 
-      aarch64)
-        ZERO_ARCHFLAG=""
-        ;;
     # ZERO_ARCHDEF is used to enable architecture-specific code
     case "${OPENJDK_TARGET_CPU}" in
       ppc*)    ZERO_ARCHDEF=PPC   ;;
