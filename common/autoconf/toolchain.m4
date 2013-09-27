@@ -1076,6 +1076,9 @@ AC_DEFUN_ONCE([TOOLCHAIN_SETUP_COMPILER_FLAGS_MISC],
     s390)
       ZERO_ARCHFLAG="-m31"
       ;;
+    aarch64)
+      ZERO_ARCHFLAG=""
+      ;;
     *)
       ZERO_ARCHFLAG="-m${OPENJDK_TARGET_CPU_BITS}"
   esac

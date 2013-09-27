@@ -339,9 +339,6 @@ AC_DEFUN([PLATFORM_SETUP_LEGACY_VARS],
     fi
     AC_SUBST(DEFINE_CROSS_COMPILE_ARCH)
 
-        ;;
-      aarch64)
-        ZERO_ARCHFLAG=""
     # ZERO_ARCHDEF is used to enable architecture-specific code
     case "${OPENJDK_TARGET_CPU}" in
       ppc*)    ZERO_ARCHDEF=PPC   ;;
