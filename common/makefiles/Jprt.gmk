@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2012, Oracle and/or its affiliates. All rights reserved.
+# Copyright (c) 2012, 2013, Oracle and/or its affiliates. All rights reserved.
 # DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
 #
 # This code is free software; you can redistribute it and/or modify it
@@ -127,8 +127,20 @@ else
   ifdef ALT_JAVAFX_ZIP_DIR
 	@$(ECHO) " --with-javafx-zip-dir=$(call UnixPath,$(ALT_JAVAFX_ZIP_DIR)) " >> $@.tmp
   endif
+  ifdef ALT_JMC_ZIP_DIR
+	@$(ECHO) " --with-jmc-zip-dir=$(call UnixPath,$(ALT_JMC_ZIP_DIR)) " >> $@.tmp
+  endif
   ifdef ALT_WIXDIR
 	@$(ECHO) " --with-wix=$(call UnixPath,$(ALT_WIXDIR)) " >> $@.tmp
+  endif
+  ifdef ALT_INSTALL_LZMA_PATH
+	@$(ECHO) " --with-lzma-path=$(call UnixPath,$(ALT_INSTALL_LZMA_PATH)) " >> $@.tmp
+  endif
+  ifdef ALT_INSTALL_UPX_PATH
+	@$(ECHO) " --with-upx-path=$(call UnixPath,$(ALT_INSTALL_UPX_PATH)) " >> $@.tmp
+  endif
+  ifdef ALT_INSTALL_UPX_FILENAME
+	@$(ECHO) " --with-upx-filename=$(call UnixPath,$(ALT_INSTALL_UPX_FILENAME)) " >> $@.tmp
   endif
   ifdef ALT_CCSS_SIGNING_DIR
 	@$(ECHO) " --with-ccss-signing=$(call UnixPath,$(ALT_CCSS_SIGNING_DIR)) " >> $@.tmp
@@ -188,13 +200,8 @@ $(JPRT_ARCHIVE_BUNDLE): bundles
 	$(RM) $@
 	$(CP) $(BUILD_OUTPUT)/bundles/$(JDK_IMAGE_SUBDIR).zip $@
 
-ifeq ($(OPENJDK_TARGET_OS)-$(OPENJDK_TARGET_CPU_BITS),solaris-64)
-  SRC_JDK_IMAGE_DIR := $(JDK_OVERLAY_IMAGE_DIR)
-  SRC_JRE_IMAGE_DIR := $(JRE_OVERLAY_IMAGE_DIR)
-else
-  SRC_JDK_IMAGE_DIR := $(JDK_IMAGE_DIR)
-  SRC_JRE_IMAGE_DIR := $(JRE_IMAGE_DIR)
-endif
+SRC_JDK_IMAGE_DIR := $(JDK_IMAGE_DIR)
+SRC_JRE_IMAGE_DIR := $(JRE_IMAGE_DIR)
 SRC_JDK_BUNDLE_DIR := $(JDK_BUNDLE_DIR)
 SRC_JRE_BUNDLE_DIR := $(JRE_BUNDLE_DIR)
 
@@ -203,10 +210,10 @@ bundles: all bundles-only
 bundles-only: start-make
 	@$(call TargetEnter)
 	$(MKDIR) -p $(BUILD_OUTPUT)/bundles
-	$(CD) $(SRC_JDK_IMAGE_DIR) && $(ZIP) -q -r $(BUILD_OUTPUT)/bundles/$(JDK_IMAGE_SUBDIR).zip .
-	$(CD) $(SRC_JRE_IMAGE_DIR) && $(ZIP) -q -r $(BUILD_OUTPUT)/bundles/$(JRE_IMAGE_SUBDIR).zip .
+	$(CD) $(SRC_JDK_IMAGE_DIR) && $(ZIP) -y -q -r $(BUILD_OUTPUT)/bundles/$(JDK_IMAGE_SUBDIR).zip .
+	$(CD) $(SRC_JRE_IMAGE_DIR) && $(ZIP) -y -q -r $(BUILD_OUTPUT)/bundles/$(JRE_IMAGE_SUBDIR).zip .
 	if [ -d  $(BUILD_OUTPUT)/install/bundles ] ; then \
-           $(CD) $(BUILD_OUTPUT)/install/bundles && $(ZIP) -q -r $(JPRT_ARCHIVE_INSTALL_BUNDLE) . ; \
+           $(CD) $(BUILD_OUTPUT)/install/bundles && $(ZIP) -y -q -r $(JPRT_ARCHIVE_INSTALL_BUNDLE) . ; \
         fi
 	@$(call TargetExit)
 

@@ -211,7 +211,7 @@ AC_DEFUN([BASIC_FIXUP_EXECUTABLE_CYGWIN],
   # the same file, most of the time (as in "test -f"). But not when running cygpath -s, then
   # "foo.exe" is OK but "foo" is an error.
   #
-  # This test is therefore slightly more accurate than "test -f" to check for file precense.
+  # This test is therefore slightly more accurate than "test -f" to check for file presence.
   # It is also a way to make sure we got the proper file name for the real test later on.
   test_shortpath=`$CYGPATH -s -m "$new_path" 2> /dev/null`
   if test "x$test_shortpath" = x; then
@@ -300,7 +300,7 @@ AC_DEFUN([BASIC_FIXUP_EXECUTABLE_MSYS],
 # Setup basic configuration paths, and platform-specific stuff related to PATHs.
 AC_DEFUN([BASIC_CHECK_PATHS_WINDOWS],
 [
-  SRC_ROOT_LENGTH=`$THEPWDCMD|$WC -m`
+  SRC_ROOT_LENGTH=`$THEPWDCMD -L|$WC -m`
   if test $SRC_ROOT_LENGTH -gt 100; then
       AC_MSG_ERROR([Your base path is too long. It is $SRC_ROOT_LENGTH characters long, but only 100 is supported])
   fi
