@@ -91,6 +91,15 @@ AC_DEFUN([TOOLCHAIN_FIND_VISUAL_STUDIO_BAT_FILE],
     AC_MSG_ERROR([Cannot locate a valid Visual Studio installation])
   fi  
 
+  if test "x$VS100COMNTOOLS" != x; then
+    TOOLCHAIN_CHECK_POSSIBLE_VISUAL_STUDIO_ROOT([$VS100COMNTOOLS/../..], [VS100COMNTOOLS variable])
+  fi
+  if test "x$PROGRAMFILES" != x; then
+    TOOLCHAIN_CHECK_POSSIBLE_VISUAL_STUDIO_ROOT([$PROGRAMFILES/Microsoft Visual Studio 10.0], [well-known name])
+  fi
+  TOOLCHAIN_CHECK_POSSIBLE_VISUAL_STUDIO_ROOT([C:/Program Files/Microsoft Visual Studio 10.0], [well-known name])
+  TOOLCHAIN_CHECK_POSSIBLE_VISUAL_STUDIO_ROOT([C:/Program Files (x86)/Microsoft Visual Studio 10.0], [well-known name])
+
   if test "x$ProgramW6432" != x; then
     TOOLCHAIN_CHECK_POSSIBLE_WIN_SDK_ROOT([$ProgramW6432/Microsoft SDKs/Windows/v7.1/Bin], [well-known name])
   fi
@@ -102,15 +111,6 @@ AC_DEFUN([TOOLCHAIN_FIND_VISUAL_STUDIO_BAT_FILE],
   fi
   TOOLCHAIN_CHECK_POSSIBLE_WIN_SDK_ROOT([C:/Program Files/Microsoft SDKs/Windows/v7.1/Bin], [well-known name])
   TOOLCHAIN_CHECK_POSSIBLE_WIN_SDK_ROOT([C:/Program Files (x86)/Microsoft SDKs/Windows/v7.1/Bin], [well-known name])
-
-  if test "x$VS100COMNTOOLS" != x; then
-    TOOLCHAIN_CHECK_POSSIBLE_VISUAL_STUDIO_ROOT([$VS100COMNTOOLS/../..], [VS100COMNTOOLS variable])
-  fi
-  if test "x$PROGRAMFILES" != x; then
-    TOOLCHAIN_CHECK_POSSIBLE_VISUAL_STUDIO_ROOT([$PROGRAMFILES/Microsoft Visual Studio 10.0], [well-known name])
-  fi
-  TOOLCHAIN_CHECK_POSSIBLE_VISUAL_STUDIO_ROOT([C:/Program Files/Microsoft Visual Studio 10.0], [well-known name])
-  TOOLCHAIN_CHECK_POSSIBLE_VISUAL_STUDIO_ROOT([C:/Program Files (x86)/Microsoft Visual Studio 10.0], [well-known name])
 ])
 
 # Check if the VS env variables were setup prior to running configure.
@@ -208,6 +208,8 @@ AC_DEFUN([TOOLCHAIN_SETUP_VISUAL_STUDIO_ENV],
       # Remove any trailing \ from INCLUDE and LIB to avoid trouble in spec.gmk.
       VS_INCLUDE=`$ECHO "$INCLUDE" | $SED 's/\\\\$//'`
       VS_LIB=`$ECHO "$LIB" | $SED 's/\\\\$//'`
+      # Remove any paths containing # (typically F#) as that messes up make
+      PATH=`$ECHO "$PATH" | $SED 's/[[^:#]]*#[^:]*://g'`
       VS_PATH="$PATH"
       AC_SUBST(VS_INCLUDE)
       AC_SUBST(VS_LIB)
@@ -248,10 +250,23 @@ AC_DEFUN([TOOLCHAIN_SETUP_VISUAL_STUDIO_ENV],
         AC_MSG_NOTICE([Warning: msvcr100.dll not found in VCINSTALLDIR: $VCINSTALLDIR])
       fi
     fi
+    # Try some fallback alternatives
     if test "x$MSVCR_DLL" = x; then
-      if test -f "$SYSTEMROOT/system32/msvcr100.dll"; then
-        AC_MSG_NOTICE([msvcr100.dll found in $SYSTEMROOT/system32])
-        MSVCR_DLL="$SYSTEMROOT/system32/msvcr100.dll"
+      # If visual studio express is installed, there is usually one with the debugger
+      if test "x$VS100COMNTOOLS" != x; then
+        if test "x$OPENJDK_TARGET_CPU_BITS" = x64; then
+          MSVCR_DLL=`find "$VS100COMNTOOLS/.." -name msvcr100.dll | grep -i x64 | head --lines 1`
+          AC_MSG_NOTICE([msvcr100.dll found in $VS100COMNTOOLS..: $VS100COMNTOOLS..])
+        fi
+      fi
+    fi
+    if test "x$MSVCR_DLL" = x; then
+      if test "x$OPENJDK_TARGET_CPU_BITS" = x32; then
+        # Fallback for 32bit builds, look in the windows directory.
+        if test -f "$SYSTEMROOT/system32/msvcr100.dll"; then
+          AC_MSG_NOTICE([msvcr100.dll found in $SYSTEMROOT/system32])
+          MSVCR_DLL="$SYSTEMROOT/system32/msvcr100.dll"
+        fi
       fi
     fi
   fi
@@ -261,62 +276,4 @@ AC_DEFUN([TOOLCHAIN_SETUP_VISUAL_STUDIO_ENV],
   fi
   AC_MSG_RESULT([$MSVCR_DLL])
   BASIC_FIXUP_PATH(MSVCR_DLL)
-])
-
-
-# Setup the DXSDK paths
-AC_DEFUN([TOOLCHAIN_SETUP_DXSDK],
-[
-  AC_ARG_WITH(dxsdk, [AS_HELP_STRING([--with-dxsdk],
-      [the DirectX SDK (Windows only) @<:@probed@:>@])])
-  AC_ARG_WITH(dxsdk-lib, [AS_HELP_STRING([--with-dxsdk-lib],
-      [the DirectX SDK lib directory (Windows only) @<:@probed@:>@])])
-  AC_ARG_WITH(dxsdk-include, [AS_HELP_STRING([--with-dxsdk-include],
-      [the DirectX SDK include directory (Windows only) @<:@probed@:>@])])
-
-  AC_MSG_CHECKING([for DirectX SDK])
-
-  if test "x$with_dxsdk" != x; then
-    dxsdk_path="$with_dxsdk"
-  elif test "x$DXSDK_DIR" != x; then
-    dxsdk_path="$DXSDK_DIR"
-  elif test -d "C:/DXSDK"; then
-    dxsdk_path="C:/DXSDK"
-  else
-    AC_MSG_ERROR([Could not find the DirectX SDK])
-  fi
-  AC_MSG_RESULT([$dxsdk_path])
-  BASIC_FIXUP_PATH(dxsdk_path)
-
-  AC_MSG_CHECKING([for DirectX SDK lib dir])
-  if test "x$with_dxsdk_lib" != x; then
-    DXSDK_LIB_PATH="$with_dxsdk_lib"
-  elif test "x$OPENJDK_TARGET_CPU" = "xx86_64"; then
-    DXSDK_LIB_PATH="$dxsdk_path/Lib/x64"
-  else
-    DXSDK_LIB_PATH="$dxsdk_path/Lib"
-  fi
-  # dsound.lib is linked to in jsoundds
-  if test ! -f "$DXSDK_LIB_PATH/dsound.lib"; then
-    AC_MSG_ERROR([Invalid DirectX SDK lib dir])
-  fi
-  AC_MSG_RESULT([$DXSDK_LIB_PATH])
-  BASIC_FIXUP_PATH(DXSDK_LIB_PATH)
-
-  AC_MSG_CHECKING([for DirectX SDK include dir])
-  if test "x$with_dxsdk_include" != x; then
-    DXSDK_INCLUDE_PATH="$with_dxsdk_include"
-  else
-    DXSDK_INCLUDE_PATH="$dxsdk_path/Include"
-  fi
-  # dsound.h is included in jsoundds
-  if test ! -f "$DXSDK_INCLUDE_PATH/dsound.h"; then
-    AC_MSG_ERROR([Invalid DirectX SDK lib dir])
-  fi
-  AC_MSG_RESULT([$DXSDK_INCLUDE_PATH])
-  BASIC_FIXUP_PATH(DXSDK_INCLUDE_PATH)
-
-  AC_SUBST(DXSDK_LIB_PATH)
-  AC_SUBST(DXSDK_INCLUDE_PATH)
-  LDFLAGS_JDK="$LDFLAGS_JDK -libpath:$DXSDK_LIB_PATH"
 ])
