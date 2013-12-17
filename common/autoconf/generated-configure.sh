@@ -659,7 +659,6 @@ X_EXTRA_LIBS
 X_LIBS
 X_PRE_LIBS
 X_CFLAGS
-XMKMF
 FIXPATH
 CXXFLAGS_DEBUG_SYMBOLS
 CFLAGS_DEBUG_SYMBOLS
@@ -1081,7 +1080,6 @@ OBJC
 OBJCFLAGS
 CPP
 CXXCPP
-XMKMF
 FREETYPE_CFLAGS
 FREETYPE_LIBS
 ALSA_CFLAGS
@@ -1855,7 +1853,6 @@ Some influential environment variables:
   OBJCFLAGS   Objective C compiler flags
   CPP         C preprocessor
   CXXCPP      C++ preprocessor
-  XMKMF       Path to xmkmf, Makefile generator for X Window System
   FREETYPE_CFLAGS
               C compiler flags for FREETYPE, overriding pkg-config
   FREETYPE_LIBS
@@ -2869,14 +2866,8 @@ if test -n "$CONFIG_SITE"; then
     */*) ac_site_file1=$CONFIG_SITE;;
     *)   ac_site_file1=./$CONFIG_SITE;;
   esac
-elif test "x$prefix" != xNONE; then
-  ac_site_file1=$prefix/share/config.site
-  ac_site_file2=$prefix/etc/config.site
-else
-  ac_site_file1=$ac_default_prefix/share/config.site
-  ac_site_file2=$ac_default_prefix/etc/config.site
 fi
-for ac_site_file in "$ac_site_file1" "$ac_site_file2"
+for ac_site_file in $ac_site_file1
 do
   test "x$ac_site_file" = xNONE && continue
   if test /dev/null != "$ac_site_file" && test -r "$ac_site_file"; then
@@ -3864,7 +3855,7 @@ fi
 #CUSTOM_AUTOCONF_INCLUDE
 
 # Do not change or remove the following line, it is needed for consistency checks:
-DATE_WHEN_GENERATED=1383151988
+DATE_WHEN_GENERATED=1387281898
 
 ###############################################################################
 #
@@ -7863,7 +7854,7 @@ $as_echo "$with_jvm_variants" >&6; }
   JVM_VARIANT_ZERO=`$ECHO "$JVM_VARIANTS" | $SED -e '/,zero,/!s/.*/false/g' -e '/,zero,/s/.*/true/g'`
   JVM_VARIANT_ZEROSHARK=`$ECHO "$JVM_VARIANTS" | $SED -e '/,zeroshark,/!s/.*/false/g' -e '/,zeroshark,/s/.*/true/g'`
 
-if test "x$JVM_VARIANT_KERNEL" = xtrue; then
+  if test "x$JVM_VARIANT_KERNEL" = xtrue; then
     if test "x$OPENJDK_TARGET_CPU_BITS" = x64; then
       as_fn_error $? "You cannot build a kernel JVM for a 64-bit machine." "$LINENO" 5
     fi
@@ -7897,10 +7888,10 @@ if test "x$JVM_VARIANT_KERNEL" = xtrue; then
   fi
   if test "x$JVM_VARIANT_ZEROSHARK" = xtrue ; then
     INCLUDE_SA=false
-fi
-if test "x$OPENJDK_TARGET_CPU" = xaarch64; then
+  fi
+  if test "x$OPENJDK_TARGET_CPU" = xaarch64; then
     INCLUDE_SA=false
-fi
+  fi
 
 
   if test "x$OPENJDK_TARGET_OS" = "xmacosx"; then
