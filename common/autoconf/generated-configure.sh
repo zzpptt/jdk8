@@ -659,7 +659,6 @@ X_EXTRA_LIBS
 X_LIBS
 X_PRE_LIBS
 X_CFLAGS
-XMKMF
 FIXPATH
 CXXFLAGS_DEBUG_SYMBOLS
 CFLAGS_DEBUG_SYMBOLS
@@ -1081,7 +1080,6 @@ OBJC
 OBJCFLAGS
 CPP
 CXXCPP
-XMKMF
 FREETYPE_CFLAGS
 FREETYPE_LIBS
 ALSA_CFLAGS
@@ -1855,7 +1853,6 @@ Some influential environment variables:
   OBJCFLAGS   Objective C compiler flags
   CPP         C preprocessor
   CXXCPP      C++ preprocessor
-  XMKMF       Path to xmkmf, Makefile generator for X Window System
   FREETYPE_CFLAGS
               C compiler flags for FREETYPE, overriding pkg-config
   FREETYPE_LIBS
@@ -2862,7 +2859,6 @@ _ACEOF
 # Let the site file select an alternate cache file if it wants to.
 # Prefer an explicitly selected file to automatically selected ones.
 ac_site_file1=NONE
-ac_site_file2=NONE
 if test -n "$CONFIG_SITE"; then
   # We do not want a PATH search for config.site.
   case $CONFIG_SITE in #((
@@ -2870,14 +2866,8 @@ if test -n "$CONFIG_SITE"; then
     */*) ac_site_file1=$CONFIG_SITE;;
     *)   ac_site_file1=./$CONFIG_SITE;;
   esac
-elif test "x$prefix" != xNONE; then
-  ac_site_file1=$prefix/share/config.site
-  ac_site_file2=$prefix/etc/config.site
-else
-  ac_site_file1=$ac_default_prefix/share/config.site
-  ac_site_file2=$ac_default_prefix/etc/config.site
 fi
-for ac_site_file in "$ac_site_file1" "$ac_site_file2"
+for ac_site_file in $ac_site_file1
 do
   test "x$ac_site_file" = xNONE && continue
   if test /dev/null != "$ac_site_file" && test -r "$ac_site_file"; then
@@ -3865,7 +3855,7 @@ fi
 #CUSTOM_AUTOCONF_INCLUDE
 
 # Do not change or remove the following line, it is needed for consistency checks:
-DATE_WHEN_GENERATED=1383151988
+DATE_WHEN_GENERATED=1387281898
 
 ###############################################################################
 #
@@ -6728,8 +6718,9 @@ case $target_os in *\ *) target_os=`echo "$target_os" | sed 's/ /-/g'`;; esac
 # The aliases save the names the user supplied, while $host etc.
 # will get canonicalized.
 test -n "$target_alias" &&
-  test "$program_prefix$program_suffix$program_transform_name" = \
-    NONENONEs,x,x, &&
+  test "$target_alias" != "$host_alias" &&
+    test "$program_prefix$program_suffix$program_transform_name" = \
+      NONENONEs,x,x, &&
   program_prefix=${target_alias}-
 
   # Figure out the build and target systems. # Note that in autoconf terminology, "build" is obvious, but "target"
@@ -6808,6 +6799,12 @@ test -n "$target_alias" &&
       VAR_CPU=arm
       VAR_CPU_ARCH=arm
       VAR_CPU_BITS=32
+      VAR_CPU_ENDIAN=little
+      ;;
+    aarch64)
+      VAR_CPU=aarch64
+      VAR_CPU_ARCH=aarch64
+      VAR_CPU_BITS=64
       VAR_CPU_ENDIAN=little
       ;;
     powerpc)
@@ -6928,6 +6925,12 @@ $as_echo "$OPENJDK_BUILD_OS-$OPENJDK_BUILD_CPU" >&6; }
       VAR_CPU=arm
       VAR_CPU_ARCH=arm
       VAR_CPU_BITS=32
+      VAR_CPU_ENDIAN=little
+      ;;
+    aarch64)
+      VAR_CPU=aarch64
+      VAR_CPU_ARCH=aarch64
+      VAR_CPU_BITS=64
       VAR_CPU_ENDIAN=little
       ;;
     powerpc)
@@ -7851,11 +7854,6 @@ $as_echo "$with_jvm_variants" >&6; }
   JVM_VARIANT_ZERO=`$ECHO "$JVM_VARIANTS" | $SED -e '/,zero,/!s/.*/false/g' -e '/,zero,/s/.*/true/g'`
   JVM_VARIANT_ZEROSHARK=`$ECHO "$JVM_VARIANTS" | $SED -e '/,zeroshark,/!s/.*/false/g' -e '/,zeroshark,/s/.*/true/g'`
 
-  if test "x$JVM_VARIANT_CLIENT" = xtrue; then
-    if test "x$OPENJDK_TARGET_CPU_BITS" = x64; then
-      as_fn_error $? "You cannot build a client JVM for a 64-bit machine." "$LINENO" 5
-    fi
-  fi
   if test "x$JVM_VARIANT_KERNEL" = xtrue; then
     if test "x$OPENJDK_TARGET_CPU_BITS" = x64; then
       as_fn_error $? "You cannot build a kernel JVM for a 64-bit machine." "$LINENO" 5
@@ -7889,6 +7887,9 @@ $as_echo "$with_jvm_variants" >&6; }
     INCLUDE_SA=false
   fi
   if test "x$JVM_VARIANT_ZEROSHARK" = xtrue ; then
+    INCLUDE_SA=false
+  fi
+  if test "x$OPENJDK_TARGET_CPU" = xaarch64; then
     INCLUDE_SA=false
   fi
 
@@ -29512,7 +29513,7 @@ fi
   #
   case $COMPILER_NAME in
     gcc )
-      CCXXFLAGS_JDK="$CCXXFLAGS $CCXXFLAGS_JDK -W -Wall -Wno-unused -Wno-parentheses \
+      CCXXFLAGS_JDK="$CCXXFLAGS $CCXXFLAGS_JDK -W -Wall -Wno-unused -Wno-unused-parameter -Wno-parentheses \
       -pipe \
       -D_GNU_SOURCE -D_REENTRANT -D_LARGEFILE64_SOURCE"
       case $OPENJDK_TARGET_CPU_ARCH in
@@ -29746,6 +29747,9 @@ fi
   case "${OPENJDK_TARGET_CPU}" in
     s390)
       ZERO_ARCHFLAG="-m31"
+      ;;
+    aarch64)
+      ZERO_ARCHFLAG=""
       ;;
     *)
       ZERO_ARCHFLAG="-m${OPENJDK_TARGET_CPU_BITS}"
@@ -30160,85 +30164,9 @@ else
 else
   # One or both of the vars are not set, and there is no cached value.
 ac_x_includes=no ac_x_libraries=no
-rm -f -r conftest.dir
-if mkdir conftest.dir; then
-  cd conftest.dir
-  cat >Imakefile <<'_ACEOF'
-incroot:
-	@echo incroot='${INCROOT}'
-usrlibdir:
-	@echo usrlibdir='${USRLIBDIR}'
-libdir:
-	@echo libdir='${LIBDIR}'
-_ACEOF
-  if (export CC; ${XMKMF-xmkmf}) >/dev/null 2>/dev/null && test -f Makefile; then
-    # GNU make sometimes prints "make[1]: Entering ...", which would confuse us.
-    for ac_var in incroot usrlibdir libdir; do
-      eval "ac_im_$ac_var=\`\${MAKE-make} $ac_var 2>/dev/null | sed -n 's/^$ac_var=//p'\`"
-    done
-    # Open Windows xmkmf reportedly sets LIBDIR instead of USRLIBDIR.
-    for ac_extension in a so sl dylib la dll; do
-      if test ! -f "$ac_im_usrlibdir/libX11.$ac_extension" &&
-	 test -f "$ac_im_libdir/libX11.$ac_extension"; then
-	ac_im_usrlibdir=$ac_im_libdir; break
-      fi
-    done
-    # Screen out bogus values from the imake configuration.  They are
-    # bogus both because they are the default anyway, and because
-    # using them would break gcc on systems where it needs fixed includes.
-    case $ac_im_incroot in
-	/usr/include) ac_x_includes= ;;
-	*) test -f "$ac_im_incroot/X11/Xos.h" && ac_x_includes=$ac_im_incroot;;
-    esac
-    case $ac_im_usrlibdir in
-	/usr/lib | /usr/lib64 | /lib | /lib64) ;;
-	*) test -d "$ac_im_usrlibdir" && ac_x_libraries=$ac_im_usrlibdir ;;
-    esac
-  fi
-  cd ..
-  rm -f -r conftest.dir
-fi
-
 # Standard set of common directories for X headers.
 # Check X11 before X11Rn because it is often a symlink to the current release.
-ac_x_header_dirs='
-/usr/X11/include
-/usr/X11R7/include
-/usr/X11R6/include
-/usr/X11R5/include
-/usr/X11R4/include
-
-/usr/include/X11
-/usr/include/X11R7
-/usr/include/X11R6
-/usr/include/X11R5
-/usr/include/X11R4
-
-/usr/local/X11/include
-/usr/local/X11R7/include
-/usr/local/X11R6/include
-/usr/local/X11R5/include
-/usr/local/X11R4/include
-
-/usr/local/include/X11
-/usr/local/include/X11R7
-/usr/local/include/X11R6
-/usr/local/include/X11R5
-/usr/local/include/X11R4
-
-/usr/X386/include
-/usr/x386/include
-/usr/XFree86/include/X11
-
-/usr/include
-/usr/local/include
-/usr/unsupported/include
-/usr/athena/include
-/usr/local/x11r5/include
-/usr/lpp/Xamples/include
-
-/usr/openwin/include
-/usr/openwin/share/include'
+ac_x_header_dirs=''
 
 if test "$ac_x_includes" = no; then
   # Guess where to find include files, by looking for Xlib.h.
