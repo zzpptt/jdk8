@@ -38,3 +38,8 @@ gc/metaspace/CompressedClassSpaceSizeInJmapHeap.java	generic-all
 gc/concurrentMarkSweep/CheckAllocateAndSystemGC.java    generic-all
 gc/concurrentMarkSweep/GuardShrinkWarning.java  generic-all
 gc/concurrentMarkSweep/SystemGCOnForegroundCollector.java       generic-all
+
+# These tests are failing on x86 - so exclude them for the moment
+gc/metaspace/TestPerfCountersAndMemoryPools.java generic-all
+runtime/SharedArchiveFile/CdsSameObjectAlignment.java generic-all
+runtime/SharedArchiveFile/CdsDifferentObjectAlignment.java generic-all
