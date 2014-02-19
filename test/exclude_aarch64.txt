@@ -1,3 +1,12 @@
+# Added: Wed Feb 19 2014
+# ----------------------
+# These tests all use -server on the java command line which causes
+# them to fail with the client compiler. The tests work OK on the
+# server compiler so exclude them here.
+compiler/codegen/LoadWithMask.java generic-all
+compiler/codegen/LoadWithMask2.java generic-all
+compiler/uncommontrap/UncommonTrapStackBang.java generic-all
+
 # Added: Fri Feb  7 2014
 # ----------------------
 gc/g1/TestHumongousCodeCacheRoots.java	generic-all
