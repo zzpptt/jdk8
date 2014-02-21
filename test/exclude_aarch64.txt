@@ -1,3 +1,8 @@
+# Added: Fri Feb 21 2014
+# ----------------------
+# More tests in JDK which use +G1GC
+java/lang/management/MemoryMXBean/CollectionUsageThreshold.java generic-all
+
 # Added: Wed Feb 19 2014
 # ----------------------
 # These tests all use -server on the java command line which causes
