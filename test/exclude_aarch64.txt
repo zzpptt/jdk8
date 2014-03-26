@@ -1,8 +1,3 @@
-# Added: Fri Feb 21 2014
-# ----------------------
-# More tests in JDK which use +G1GC
-java/lang/management/MemoryMXBean/CollectionUsageThreshold.java generic-all
-
 # Added: Wed Feb 19 2014
 # ----------------------
 # These tests all use -server on the java command line which causes
@@ -12,46 +7,8 @@ compiler/codegen/LoadWithMask.java generic-all
 compiler/codegen/LoadWithMask2.java generic-all
 compiler/uncommontrap/UncommonTrapStackBang.java generic-all
 
-# Added: Fri Feb  7 2014
-# ----------------------
-gc/g1/TestHumongousCodeCacheRoots.java	generic-all
-
-# Added: Wed Feb  5 2014
-# ----------------------
-compiler/regalloc/C1ObjectSpillInLogicOp.java	generic-all
-gc/TestSystemGC.java	generic-all
-gc/arguments/TestMaxNewSize.java	generic-all
-gc/g1/TestHumongousAllocInitialMark.java	generic-all
-runtime/8001071/Test8001071.java	generic-all
-java/lang/management/MemoryMXBean/ResetPeakMemoryUsage.java	generic-all
-
-# These tests all require the G1 Garbage Collector, which is not
-# implemented in the aarch64-port.  They are guaranteed to fail.
-# Unfortunately, some of them run multiple tests with multiple garbage
-# collectors, but as soon as they get to the G1 collector, they abort
-# with an Unimplemented assertion.
-gc/8000311/Test8000311.java	generic-all
-gc/arguments/TestAlignmentToUseLargePages.java	generic-all
-gc/arguments/TestG1HeapRegionSize.java	generic-all
-gc/arguments/TestG1HeapSizeFlags.java	generic-all
-gc/arguments/TestMaxHeapSizeTools.java	generic-all
-gc/arguments/TestUseCompressedOopsErgo.java	generic-all
-gc/g1/TestPrintGCDetails.java	generic-all
-gc/g1/TestPrintRegionRememberedSetInfo.java	generic-all
-gc/g1/TestRegionAlignment.java	generic-all
-gc/g1/TestShrinkToOneRegion.java	generic-all
-gc/metaspace/G1AddMetaspaceDependency.java	generic-all
-gc/metaspace/TestMetaspacePerfCounters.java	generic-all
-gc/startup_warnings/TestG1.java	generic-all
-gc/TestG1ZeroPGCTJcmdThreadPrint.java	generic-all
-
 # ClassSpaceSize (aka PermGen) is not supported by Java 8
 gc/metaspace/CompressedClassSpaceSizeInJmapHeap.java	generic-all
-
-# This collector is not implemented for server; for simplicity also ignoring on client tests.
-gc/concurrentMarkSweep/CheckAllocateAndSystemGC.java    generic-all
-gc/concurrentMarkSweep/GuardShrinkWarning.java  generic-all
-gc/concurrentMarkSweep/SystemGCOnForegroundCollector.java       generic-all
 
 # These tests are failing on x86 - so exclude them for the moment
 gc/metaspace/TestPerfCountersAndMemoryPools.java generic-all
