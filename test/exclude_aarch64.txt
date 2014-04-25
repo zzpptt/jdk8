@@ -15,3 +15,4 @@ gc/metaspace/TestPerfCountersAndMemoryPools.java generic-all
 runtime/SharedArchiveFile/CdsSameObjectAlignment.java generic-all
 runtime/SharedArchiveFile/CdsDifferentObjectAlignment.java generic-all
 compiler/whitebox/IsMethodCompilableTest.java generic-all
+sun/java2d/OpenGL/DrawBufImgOp.java generic-all
