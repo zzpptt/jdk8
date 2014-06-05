@@ -1,0 +1,18 @@
+# Added: Wed Feb 19 2014
+# ----------------------
+# These tests all use -server on the java command line which causes
+# them to fail with the client compiler. The tests work OK on the
+# server compiler so exclude them here.
+compiler/codegen/LoadWithMask.java generic-all
+compiler/codegen/LoadWithMask2.java generic-all
+compiler/uncommontrap/UncommonTrapStackBang.java generic-all
+
+# ClassSpaceSize (aka PermGen) is not supported by Java 8
+gc/metaspace/CompressedClassSpaceSizeInJmapHeap.java	generic-all
+
+# These tests are failing on x86 - so exclude them for the moment
+gc/metaspace/TestPerfCountersAndMemoryPools.java generic-all
+runtime/SharedArchiveFile/CdsSameObjectAlignment.java generic-all
+runtime/SharedArchiveFile/CdsDifferentObjectAlignment.java generic-all
+compiler/whitebox/IsMethodCompilableTest.java generic-all
+sun/java2d/OpenGL/DrawBufImgOp.java generic-all
