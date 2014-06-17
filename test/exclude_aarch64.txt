@@ -1,12 +1,12 @@
 # The following all fail with the message
 # "Type profiling not implemented on this platform"
-compiler/types/TestSpeculationFailedHigherEqual.jtr generic-all
-compiler/types/correctness/CorrectnessTest.jtr generic-all
-compiler/types/correctness/OffTest.jtr generic-all
-compiler/types/TestMeetTopArrayExactConstantArray.jtr generic-all
-compiler/types/TypeSpeculation.jtr generic-all
-compiler/profiling/unloadingconflict/TestProfileConflictClassUnloading.jtr generic-all
-compiler/profiling/TestUnexpectedProfilingMismatch.jtr generic-all
+compiler/types/TestSpeculationFailedHigherEqual.java generic-all
+compiler/types/correctness/CorrectnessTest.java generic-all
+compiler/types/correctness/OffTest.java generic-all
+compiler/types/TestMeetTopArrayExactConstantArray.java generic-all
+compiler/types/TypeSpeculation.java generic-all
+compiler/profiling/unloadingconflict/TestProfileConflictClassUnloading.java generic-all
+compiler/profiling/TestUnexpectedProfilingMismatch.java generic-all
 #---------------------------------------------------------------------
 # These tests also fail on x86
 gc/arguments/TestMinInitialErgonomics.java generic-all
