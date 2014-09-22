@@ -3,26 +3,28 @@ IWD=`(cd ..;pwd)`
 if [ ! -d $IWD/sysroots ]; then
   echo "$IWD/sysroots not found!!!"
   echo "Please either install sysroots in $IWD/sysroots, or link $IWD/sysroots to your installed sysroots."
-  echo "For a limited period of time a pre-populated sysroots may be downloaded from http://people.linaro.org/~edward.nevill/sysroots.tar.gz"
+  echo "A pre-populated sysroots may be downloaded from http://openjdk.linaro.org/sysroots/sysroots_140918.tar.xz"
   exit 1
 fi
 mkdir -p /tmp/oe_45434e/jenkins-setup/build/tmp-eglibc
+mkdir -p /tmp/oe_45434e/jenkins-setup/build/tmp-glibc
 ln -f -s $IWD/sysroots /tmp/oe_45434e/jenkins-setup/build/tmp-eglibc/
+ln -f -s $IWD/sysroots /tmp/oe_45434e/jenkins-setup/build/tmp-glibc/
 export STRINGS="aarch64-oe-linux-strings"
-export CC="aarch64-oe-linux-gcc  "
+export CC="aarch64-oe-linux-gcc"
 export OBJCOPY="aarch64-oe-linux-objcopy"
-export LD="aarch64-oe-linux-ld "
-export CCLD="aarch64-oe-linux-gcc  "
+export LD="aarch64-oe-linux-ld"
+export CCLD="aarch64-oe-linux-gcc"
 export PKG_CONFIG_LIBDIR="$IWD/sysroots/genericarmv8//usr/lib/pkgconfig"
 export PKG_CONFIG_DISABLE_UNINSTALLED="yes"
 export CPP="aarch64-oe-linux-gcc -E "
 export STRIP="aarch64-oe-linux-strip"
 export PKG_CONFIG_SYSROOT_DIR="$IWD/sysroots/genericarmv8"
 export RANLIB="aarch64-oe-linux-ranlib"
-export CXX="aarch64-oe-linux-g++  "
+export CXX="aarch64-oe-linux-g++"
 export OBJDUMP="aarch64-oe-linux-objdump"
 export NM="aarch64-oe-linux-nm"
 export AS="aarch64-oe-linux-as"
 export AR="aarch64-oe-linux-ar"
 export PATH="$IWD/sysroots/x86_64-linux/usr/bin/aarch64-oe-linux:$IWD/sysroots/genericarmv8/usr/bin/crossscripts:$IWD/sysroots/x86_64-linux/usr/sbin:$IWD/sysroots/x86_64-linux/usr/bin:$IWD/sysroots/x86_64-linux/sbin:$IWD/sysroots/x86_64-linux//bin:/usr/sbin:/usr/bin:/sbin:/bin"
-sh ./configure --with-debug-level=fastdebug --with-jvm-variants=client --with-sys-root=$IWD/sysroots/genericarmv8 --enable-unlimited-crypto --openjdk-target=aarch64-oe-linux --with-cacerts-file=$IWD/sysroots/x86_64-linux/usr/lib/jvm/icedtea7-native/jre/lib/security/cacerts --with-zlib=system --with-stdc++lib=dynamic --with-boot-jdk=$IWD/sysroots/x86_64-linux/usr/lib/jvm/icedtea7-native 
+sh ./configure --with-debug-level=release --with-jvm-variants=server --with-sys-root=$IWD/sysroots/genericarmv8 --enable-unlimited-crypto --openjdk-target=aarch64-oe-linux --with-zlib=system --with-stdc++lib=dynamic
