@@ -14,4 +14,4 @@ fi
 # check we have a binutils tree
 
 # now configure a jdk8 build using the small aarch64 simulator
-sh ./configure --with-debug-level=slowdebug --with-boot-jdk=/usr/lib/jvm/java-1.7.0-openjdk.x86_64 --with-jvm-variants=client --with-sys-root=/ --openjdk-target=aarch64-oe-linux --disable-zip-debug-info
+sh ./configure --with-debug-level=slowdebug --with-boot-jdk=/usr/lib/jvm/java-1.7.0-openjdk --with-jvm-variants=client --with-sys-root=/ --openjdk-target=aarch64-oe-linux --disable-zip-debug-info
