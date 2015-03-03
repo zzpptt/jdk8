@@ -659,7 +659,6 @@ X_EXTRA_LIBS
 X_LIBS
 X_PRE_LIBS
 X_CFLAGS
-XMKMF
 FIXPATH
 CXXFLAGS_DEBUG_SYMBOLS
 CFLAGS_DEBUG_SYMBOLS
@@ -1089,7 +1088,6 @@ OBJC
 OBJCFLAGS
 CPP
 CXXCPP
-XMKMF
 FREETYPE_CFLAGS
 FREETYPE_LIBS
 ALSA_CFLAGS
@@ -1866,7 +1864,6 @@ Some influential environment variables:
   OBJCFLAGS   Objective C compiler flags
   CPP         C preprocessor
   CXXCPP      C++ preprocessor
-  XMKMF       Path to xmkmf, Makefile generator for X Window System
   FREETYPE_CFLAGS
               C compiler flags for FREETYPE, overriding pkg-config
   FREETYPE_LIBS
@@ -2873,7 +2870,6 @@ _ACEOF
 # Let the site file select an alternate cache file if it wants to.
 # Prefer an explicitly selected file to automatically selected ones.
 ac_site_file1=NONE
-ac_site_file2=NONE
 if test -n "$CONFIG_SITE"; then
   # We do not want a PATH search for config.site.
   case $CONFIG_SITE in #((
@@ -2881,14 +2877,8 @@ if test -n "$CONFIG_SITE"; then
     */*) ac_site_file1=$CONFIG_SITE;;
     *)   ac_site_file1=./$CONFIG_SITE;;
   esac
-elif test "x$prefix" != xNONE; then
-  ac_site_file1=$prefix/share/config.site
-  ac_site_file2=$prefix/etc/config.site
-else
-  ac_site_file1=$ac_default_prefix/share/config.site
-  ac_site_file2=$ac_default_prefix/etc/config.site
 fi
-for ac_site_file in "$ac_site_file1" "$ac_site_file2"
+for ac_site_file in $ac_site_file1
 do
   test "x$ac_site_file" = xNONE && continue
   if test /dev/null != "$ac_site_file" && test -r "$ac_site_file"; then
@@ -6735,8 +6725,9 @@ case $target_os in *\ *) target_os=`echo "$target_os" | sed 's/ /-/g'`;; esac
 # The aliases save the names the user supplied, while $host etc.
 # will get canonicalized.
 test -n "$target_alias" &&
-  test "$program_prefix$program_suffix$program_transform_name" = \
-    NONENONEs,x,x, &&
+  test "$target_alias" != "$host_alias" &&
+    test "$program_prefix$program_suffix$program_transform_name" = \
+      NONENONEs,x,x, &&
   program_prefix=${target_alias}-
 
   # Figure out the build and target systems. # Note that in autoconf terminology, "build" is obvious, but "target"
@@ -6820,6 +6811,12 @@ test -n "$target_alias" &&
       VAR_CPU=arm
       VAR_CPU_ARCH=arm
       VAR_CPU_BITS=32
+      VAR_CPU_ENDIAN=little
+      ;;
+    aarch64)
+      VAR_CPU=aarch64
+      VAR_CPU_ARCH=aarch64
+      VAR_CPU_BITS=64
       VAR_CPU_ENDIAN=little
       ;;
     powerpc)
@@ -6951,6 +6948,12 @@ $as_echo "$OPENJDK_BUILD_OS-$OPENJDK_BUILD_CPU" >&6; }
       VAR_CPU=arm
       VAR_CPU_ARCH=arm
       VAR_CPU_BITS=32
+      VAR_CPU_ENDIAN=little
+      ;;
+    aarch64)
+      VAR_CPU=aarch64
+      VAR_CPU_ARCH=aarch64
+      VAR_CPU_BITS=64
       VAR_CPU_ENDIAN=little
       ;;
     powerpc)
@@ -7913,11 +7916,6 @@ $as_echo "$with_jvm_variants" >&6; }
   JVM_VARIANT_ZEROSHARK=`$ECHO "$JVM_VARIANTS" | $SED -e '/,zeroshark,/!s/.*/false/g' -e '/,zeroshark,/s/.*/true/g'`
   JVM_VARIANT_CORE=`$ECHO "$JVM_VARIANTS" | $SED -e '/,core,/!s/.*/false/g' -e '/,core,/s/.*/true/g'`
 
-  if test "x$JVM_VARIANT_CLIENT" = xtrue; then
-    if test "x$OPENJDK_TARGET_CPU_BITS" = x64; then
-      as_fn_error $? "You cannot build a client JVM for a 64-bit machine." "$LINENO" 5
-    fi
-  fi
   if test "x$JVM_VARIANT_KERNEL" = xtrue; then
     if test "x$OPENJDK_TARGET_CPU_BITS" = x64; then
       as_fn_error $? "You cannot build a kernel JVM for a 64-bit machine." "$LINENO" 5
@@ -7955,6 +7953,9 @@ $as_echo "$with_jvm_variants" >&6; }
     INCLUDE_SA=false
   fi
   if test "x$VAR_CPU" = xppc64 ; then
+    INCLUDE_SA=false
+  fi
+  if test "x$OPENJDK_TARGET_CPU" = xaarch64; then
     INCLUDE_SA=false
   fi
 
@@ -29799,7 +29800,7 @@ fi
   #
   case $COMPILER_NAME in
     gcc )
-      CCXXFLAGS_JDK="$CCXXFLAGS $CCXXFLAGS_JDK -W -Wall -Wno-unused -Wno-parentheses \
+      CCXXFLAGS_JDK="$CCXXFLAGS $CCXXFLAGS_JDK -W -Wall -Wno-unused -Wno-unused-parameter -Wno-parentheses \
       -pipe \
       -D_GNU_SOURCE -D_REENTRANT -D_LARGEFILE64_SOURCE"
       case $OPENJDK_TARGET_CPU_ARCH in
@@ -30043,6 +30044,9 @@ fi
   case "${OPENJDK_TARGET_CPU}" in
     s390)
       ZERO_ARCHFLAG="${COMPILER_TARGET_BITS_FLAG}31"
+      ;;
+    aarch64)
+      ZERO_ARCHFLAG=""
       ;;
     *)
       ZERO_ARCHFLAG="${COMPILER_TARGET_BITS_FLAG}${OPENJDK_TARGET_CPU_BITS}"
