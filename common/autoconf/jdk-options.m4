@@ -117,11 +117,6 @@ AC_DEFUN_ONCE([JDKOPT_SETUP_JVM_VARIANTS],
   JVM_VARIANT_ZEROSHARK=`$ECHO "$JVM_VARIANTS" | $SED -e '/,zeroshark,/!s/.*/false/g' -e '/,zeroshark,/s/.*/true/g'`
   JVM_VARIANT_CORE=`$ECHO "$JVM_VARIANTS" | $SED -e '/,core,/!s/.*/false/g' -e '/,core,/s/.*/true/g'`
 
-  if test "x$JVM_VARIANT_CLIENT" = xtrue; then
-    if test "x$OPENJDK_TARGET_CPU_BITS" = x64; then
-      AC_MSG_ERROR([You cannot build a client JVM for a 64-bit machine.])
-    fi
-  fi
   if test "x$JVM_VARIANT_KERNEL" = xtrue; then
     if test "x$OPENJDK_TARGET_CPU_BITS" = x64; then
       AC_MSG_ERROR([You cannot build a kernel JVM for a 64-bit machine.])
@@ -158,10 +153,10 @@ AC_DEFUN_ONCE([JDKOPT_SETUP_JVM_VARIANTS],
   if test "x$JVM_VARIANT_ZEROSHARK" = xtrue ; then
     INCLUDE_SA=false
   fi
-  if test "x$VAR_CPU" = xppc64 ; then
+  if test "x$OPENJDK_TARGET_CPU" = xaarch64; then
     INCLUDE_SA=false
   fi
-  if test "x$OPENJDK_TARGET_CPU" = xaarch64; then
+  if test "x$VAR_CPU" = xppc64 ; then
     INCLUDE_SA=false
   fi
   AC_SUBST(INCLUDE_SA)
